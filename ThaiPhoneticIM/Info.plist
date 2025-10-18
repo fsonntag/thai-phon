@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>ThaiPhoneticIM</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.fsonntag.inputmethod.ThaiPhoneticIM</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Thai Phonetic</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSBackgroundOnly</key>
+	<true/>
+	<key>LSMinimumSystemVersion</key>
+	<string>11.0</string>
+	<key>InputMethodConnectionName</key>
+	<string>ThaiPhonetic_Connection</string>
+	<key>InputMethodServerControllerClass</key>
+	<string>ThaiPhoneticIMController</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>TISIntendedLanguage</key>
+	<string>th</string>
+	<key>TISInputSourceID</key>
+	<string>com.fsonntag.inputmethod.ThaiPhoneticIM</string>
+	<key>TISIconIsTemplate</key>
+	<true/>
+	<key>tsInputMethodIconFileKey</key>
+	<string>ThaiPhonetic.tiff</string>
+	<key>tsInputMethodCharacterRepertoireKey</key>
+	<array>
+		<string>Latn</string>
+		<string>Thai</string>
+	</array>
+</dict>
+</plist>

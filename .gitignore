@@ -1,0 +1,36 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+
+# Build artifacts
+ThaiPhoneticIM/build/
+*.app
+*.inputplugin
+
+# Generated binaries
+test_candidate_window
+
+# Data sets (too large for repo)
+thai2rom/
+tnc_freq.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.bak
+*~
