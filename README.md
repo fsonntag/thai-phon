@@ -9,6 +9,11 @@ Native macOS input method using InputMethodKit. Type romanization and select Tha
 
 See [ThaiPhoneticIM/README.md](ThaiPhoneticIM/README.md) for installation and usage.
 
+### iOS Keyboard (`ThaiPhoneticKeyboard/`)
+Custom iOS keyboard extension with Pinyin-style input. Works on iPhone and iPad with stock keyboard appearance.
+
+See [ThaiPhoneticKeyboard/README.md](ThaiPhoneticKeyboard/README.md) for setup and usage.
+
 ### Dictionary Generation
 Tools for building the Thai phonetic dictionary from source datasets:
 
@@ -23,11 +28,19 @@ The phonetic dictionary is built from:
 
 Result: 198,123 romanization entries from 155,442 Thai words
 
+## Platform Support
+
+- ✅ **macOS** - Native InputMethodKit implementation
+- ✅ **iOS** - Custom keyboard extension (iPhone & iPad)
+- ⏳ **Android** - Planned
+- ⏳ **iPadOS Stage Manager** - Works with iOS keyboard
+
 ## Future Plans
 
 - Android keyboard implementation
 - Additional romanization schemes
-- Improved candidate ranking
+- Learning from user selections
+- Voice input integration
 
 ## License
 
