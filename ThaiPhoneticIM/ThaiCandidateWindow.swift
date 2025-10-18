@@ -28,7 +28,9 @@ class ThaiCandidateWindow: NSWindow {
     private func setupWindow() {
         isOpaque = false
         backgroundColor = NSColor.clear
-        level = .floating
+        // Use .popUpMenu level so candidate window appears above Spotlight and other UI
+        // This matches the behavior of system input methods like Pinyin
+        level = .popUpMenu
         hasShadow = true
         isMovableByWindowBackground = false
     }
