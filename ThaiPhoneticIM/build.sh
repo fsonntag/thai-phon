@@ -39,6 +39,9 @@ cp "$PROJECT_DIR/Info.plist" "$APP_PATH/Contents/"
 # Copy dictionary
 cp "$PROJECT_DIR/dictionary.json" "$APP_PATH/Contents/Resources/"
 
+# Copy n-gram frequencies
+cp "$PROJECT_DIR/ngram_frequencies.json" "$APP_PATH/Contents/Resources/"
+
 # Copy icon
 cp "$PROJECT_DIR/ThaiPhonetic.tiff" "$APP_PATH/Contents/Resources/"
 

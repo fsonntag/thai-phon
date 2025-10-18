@@ -13,6 +13,11 @@ class ThaiPhoneticIMController: IMKInputController {
     // Thai dictionary: romanization -> [Thai words]
     private var dictionary: [String: [String]] = [:]
 
+    // N-gram frequencies for multi-word ranking
+    private var wordFrequencies: [String: Int] = [:]  // From tnc_freq.txt
+    private var bigramFrequencies: [String: Int] = [:] // word1|word2 -> frequency
+    private var trigramFrequencies: [String: Int] = [:]  // word1|word2|word3 -> frequency
+
     // Current candidates for selection
     private var currentCandidates: [String] = []
 
@@ -22,6 +27,7 @@ class ThaiPhoneticIMController: IMKInputController {
     override init!(server: IMKServer!, delegate: Any!, client: Any!) {
         super.init(server: server, delegate: delegate, client: client)
         loadDictionary()
+        loadNgramFrequencies()
 
         // Initialize our custom candidate window
         candidatesWindow = ThaiCandidateWindow()
@@ -40,6 +46,32 @@ class ThaiPhoneticIMController: IMKInputController {
 
         dictionary = dict
         NSLog("Loaded dictionary with \(dictionary.count) entries")
+    }
+
+    private func loadNgramFrequencies() {
+        // Load n-gram frequencies from embedded JSON file
+        guard let bundlePath = Bundle.main.path(forResource: "ngram_frequencies", ofType: "json"),
+              let jsonData = try? Data(contentsOf: URL(fileURLWithPath: bundlePath)),
+              let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+            NSLog("Failed to load n-gram frequencies")
+            return
+        }
+
+        // Load bigrams
+        if let bigrams = json["bigrams"] as? [String: Int] {
+            bigramFrequencies = bigrams
+            NSLog("Loaded \(bigramFrequencies.count) bigrams")
+        }
+
+        // Load trigrams
+        if let trigrams = json["trigrams"] as? [String: Int] {
+            trigramFrequencies = trigrams
+            NSLog("Loaded \(trigramFrequencies.count) trigrams")
+        }
+
+        // Also load word frequencies from tnc_freq.txt (already embedded in dictionary ordering)
+        // For now, we'll infer word frequency from position in dictionary
+        // Later we can load tnc_freq.txt separately if needed
     }
 
     // MARK: - Input Handling
@@ -163,6 +195,179 @@ class ThaiPhoneticIMController: IMKInputController {
         return false
     }
 
+    // MARK: - Multi-word Segmentation
+
+    private func greedySegment(_ input: String) -> [String]? {
+        // Greedy longest-match segmentation
+        // Returns array of romanization segments, or nil if segmentation fails
+
+        var result: [String] = []
+        var remaining = input
+        let maxWordLength = 15  // Reasonable max for Thai words
+
+        while !remaining.isEmpty {
+            var matched = false
+
+            // Try longest matches first
+            for length in stride(from: min(remaining.count, maxWordLength), through: 1, by: -1) {
+                let prefix = String(remaining.prefix(length))
+
+                // Try exact match first
+                if dictionary[prefix] != nil {
+                    result.append(prefix)
+                    remaining = String(remaining.dropFirst(length))
+                    matched = true
+                    break
+                }
+
+                // Try fuzzy match
+                let fuzzyVariants = generateFuzzyVariants(prefix)
+                for variant in fuzzyVariants {
+                    if dictionary[variant] != nil {
+                        result.append(prefix)  // Store original input, not variant
+                        remaining = String(remaining.dropFirst(length))
+                        matched = true
+                        break
+                    }
+                }
+                if matched { break }
+            }
+
+            // If no match found, segmentation failed
+            if !matched {
+                return nil
+            }
+        }
+
+        return result
+    }
+
+    private func lookupSegment(_ segment: String) -> [String] {
+        // Lookup a single segment, trying exact then fuzzy matching
+
+        // Try exact match first
+        if let candidates = dictionary[segment] {
+            return candidates
+        }
+
+        // Try fuzzy matching
+        let fuzzyVariants = generateFuzzyVariants(segment)
+        for variant in fuzzyVariants {
+            if let candidates = dictionary[variant] {
+                return candidates
+            }
+        }
+
+        return []
+    }
+
+    private func scorePhrase(_ words: [String]) -> Double {
+        // Score a phrase using n-gram frequencies
+        // Higher score = more likely phrase
+
+        if words.isEmpty {
+            return 0.0
+        }
+
+        if words.count == 1 {
+            // Single word: use position in dictionary as proxy for frequency
+            // (dictionary is already sorted by frequency)
+            return 1000.0  // Base score for single words
+        }
+
+        var score = 1.0
+
+        // Add bigram scores
+        for i in 0..<words.count - 1 {
+            let bigramKey = "\(words[i])|\(words[i+1])"
+            if let bigramFreq = bigramFrequencies[bigramKey] {
+                score *= Double(bigramFreq)
+            } else {
+                // No bigram data: penalize but don't eliminate
+                score *= 0.01  // Small penalty
+            }
+        }
+
+        // Add trigram scores (if available)
+        for i in 0..<words.count - 2 {
+            let trigramKey = "\(words[i])|\(words[i+1])|\(words[i+2])"
+            if let trigramFreq = trigramFrequencies[trigramKey] {
+                // Trigrams are less common, so boost them more
+                score *= Double(trigramFreq) * 10.0
+            }
+        }
+
+        return score
+    }
+
+    private func generateMultiWordCandidates(_ segments: [String]) -> [String] {
+        // Generate Thai candidates by joining top matches from each segment
+        // Returns up to 6 candidates, sorted by n-gram frequency scores
+
+        var candidateSets: [[String]] = []
+
+        // Lookup each segment
+        for segment in segments {
+            let candidates = lookupSegment(segment)
+            if candidates.isEmpty {
+                return []  // If any segment has no matches, fail
+            }
+            candidateSets.append(candidates)
+        }
+
+        if candidateSets.count == 1 {
+            // Single word, return top candidates
+            return Array(candidateSets[0].prefix(6))
+        }
+
+        // Multi-word: generate combinations and score them
+        var scoredCombinations: [(phrase: String, words: [String], score: Double)] = []
+
+        // Generate combinations (more exhaustive now that we have scoring)
+        let maxPerPosition = 3  // Try top 3 from each position
+
+        func generateCombinations(position: Int, currentWords: [String], currentPhrase: String) {
+            if position >= candidateSets.count {
+                // Complete combination
+                let score = scorePhrase(currentWords)
+                scoredCombinations.append((currentPhrase, currentWords, score))
+                return
+            }
+
+            // Try top N candidates for this position
+            let candidates = Array(candidateSets[position].prefix(maxPerPosition))
+            for candidate in candidates {
+                generateCombinations(
+                    position: position + 1,
+                    currentWords: currentWords + [candidate],
+                    currentPhrase: currentPhrase + candidate
+                )
+
+                // Limit total combinations to avoid explosion
+                if scoredCombinations.count >= 50 {
+                    return
+                }
+            }
+        }
+
+        generateCombinations(position: 0, currentWords: [], currentPhrase: "")
+
+        // Sort by score (descending) and return top 6
+        scoredCombinations.sort { $0.score > $1.score }
+
+        let topCandidates = scoredCombinations.prefix(6).map { $0.phrase }
+
+        // Debug: log scores for top candidates
+        if !topCandidates.isEmpty {
+            NSLog("Multi-word candidates for \(segments.joined(separator: "+")):")
+            for (i, scored) in scoredCombinations.prefix(6).enumerated() {
+                NSLog("  \(i+1). \(scored.phrase) [\(scored.words.joined(separator: " "))] score: \(scored.score)")
+            }
+        }
+
+        return Array(topCandidates)
+    }
+
     // MARK: - Candidate Management
 
     private func generateFuzzyVariants(_ roman: String) -> [String] {
@@ -284,30 +489,45 @@ class ThaiPhoneticIMController: IMKInputController {
             return
         }
 
-        // Try exact match first
+        // Try single-word lookup first (exact match)
         if let candidates = dictionary[composedBuffer] {
             currentCandidates = candidates
             return
         }
 
-        // Try fuzzy matching with vowel variants
+        // Try single-word fuzzy matching
         let fuzzyVariants = generateFuzzyVariants(composedBuffer)
-        var allCandidates: [String] = []
+        var singleWordCandidates: [String] = []
         var seenWords = Set<String>()
 
         for variant in fuzzyVariants {
             if let candidates = dictionary[variant] {
                 for candidate in candidates {
-                    // Avoid duplicates
                     if !seenWords.contains(candidate) {
-                        allCandidates.append(candidate)
+                        singleWordCandidates.append(candidate)
                         seenWords.insert(candidate)
                     }
                 }
             }
         }
 
-        currentCandidates = allCandidates
+        // If single-word lookup found results, use them
+        if !singleWordCandidates.isEmpty {
+            currentCandidates = singleWordCandidates
+            return
+        }
+
+        // Try multi-word segmentation
+        if let segments = greedySegment(composedBuffer) {
+            let multiWordCandidates = generateMultiWordCandidates(segments)
+            if !multiWordCandidates.isEmpty {
+                currentCandidates = Array(multiWordCandidates.prefix(6))  // Max 6 for multi-word
+                return
+            }
+        }
+
+        // No matches found
+        currentCandidates = []
     }
 
     // MARK: - Composition and Commit
@@ -321,9 +541,15 @@ class ThaiPhoneticIMController: IMKInputController {
             .markedClauseSegment: 0
         ]
 
-        // Always show romanization while typing (like Pinyin input)
-        // Thai text is only committed when user selects a candidate
-        let composedString = composedBuffer
+        // Show romanization while typing (like Pinyin input)
+        // For multi-word, show segmentation with spaces
+        var composedString = composedBuffer
+
+        // Try to segment the input to show word boundaries visually
+        if let segments = greedySegment(composedBuffer), segments.count > 1 {
+            // Multi-word detected: show with spaces between segments
+            composedString = segments.joined(separator: " ")
+        }
 
         let attributedString = NSAttributedString(
             string: composedString,

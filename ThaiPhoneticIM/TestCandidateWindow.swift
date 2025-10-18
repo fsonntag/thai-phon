@@ -13,7 +13,7 @@ class TestAppDelegate: NSObject, NSApplicationDelegate {
         // Create the candidate window
         window = ThaiCandidateWindow()
 
-        // Test with sample Thai candidates
+        // Test with sample Thai candidates (single word)
         let candidates = ["ฟ้า", "ฝา", "ผา", "ฝ่า", "ฟา", "ฟะ", "ฟ่า", "ฟาร์", "ฟาห์"]
         window.updateCandidates(candidates, selected: 0)
 
@@ -34,10 +34,12 @@ class TestAppDelegate: NSObject, NSApplicationDelegate {
         print("Commands:")
         print("  Left/Right Arrow - Navigate candidates")
         print("  1-9 - Select candidate by number")
-        print("  R - Reload with different candidates")
+        print("  S - Single-word candidates (short)")
+        print("  M - Multi-word candidates (longer phrases)")
+        print("  L - Long multi-word candidates")
         print("  Q - Quit")
         print("")
-        print("Window should display with rounded selection on first candidate")
+        print("Current: Single-word candidates")
 
         // Set up event monitor for keyboard input
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
@@ -53,12 +55,43 @@ class TestAppDelegate: NSObject, NSApplicationDelegate {
         case "q":
             NSApplication.shared.terminate(nil)
 
-        case "r":
-            // Reload with different candidates
-            let newCandidates = ["ไป", "มา", "เขา", "เรา", "ทำ", "คน", "ที่", "ได้", "ให้"]
-            window.updateCandidates(newCandidates, selected: 0)
+        case "s":
+            // Single-word candidates (short)
+            let singleWord = ["ฟ้า", "ฝา", "ผา", "ฝ่า", "ฟา", "ฟะ", "ฟ่า", "ฟาร์", "ฟาห์"]
+            window.updateCandidates(singleWord, selected: 0)
             currentIndex = 0
-            print("Reloaded with new candidates")
+            print("→ Single-word candidates (9 words)")
+
+        case "m":
+            // Multi-word candidates (2-3 words joined)
+            // Simulating "pom gin kao" → "ผมกินข้าว" type results
+            let multiWord = [
+                "ผมกินข้าว",      // pom gin kao (I eat rice)
+                "ผมกินเก่า",      // variant
+                "ผมคิดข้าว",      // pom kin kao variant
+                "พมกินข้าว",      // pom variant + gin kao
+                "ผมกิ่นข้าว",     // pom + gin variant + kao
+                "ผมกินข่าว"       // pom gin khao variant (news)
+            ]
+            window.updateCandidates(multiWord, selected: 0)
+            currentIndex = 0
+            print("→ Multi-word candidates (6 combinations)")
+            print("  Simulating: pom gin kao → ผมกินข้าว")
+
+        case "l":
+            // Long multi-word candidates (3-4 words)
+            let longMultiWord = [
+                "ผมกินข้าวเย็น",        // pom gin kao yen (I eat dinner)
+                "ผมกินข้าวเช้า",        // pom gin kao chao (I eat breakfast)
+                "ผมอยากกินข้าว",        // pom yaak gin kao (I want to eat rice)
+                "ผมไม่กินข้าว",         // pom mai gin kao (I don't eat rice)
+                "ผมชอบกินข้าว",         // pom chop gin kao (I like to eat rice)
+                "ผมต้องกินข้าว"          // pom tong gin kao (I must eat rice)
+            ]
+            window.updateCandidates(longMultiWord, selected: 0)
+            currentIndex = 0
+            print("→ Long multi-word candidates (6 phrases)")
+            print("  Simulating: pom yaak gin kao → ผมอยากกินข้าว")
 
         case _ where characters == String(UnicodeScalar(NSRightArrowFunctionKey)!):
             window.selectNext()
