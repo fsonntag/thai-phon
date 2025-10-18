@@ -53,11 +53,11 @@ def rtgs_to_paiboon(rtgs: str) -> str:
     Convert RTGS romanization to Paiboon system (without tone markers).
 
     RTGS → Paiboon conversions:
-    - ph → p (ผ, พ)
-    - kh → k (ข, ค)
-    - th → t (ท, ธ)
+    - ph → p (ผ, พ, ภ)
+    - kh → k (ข, ค, ฆ) - stays as 'k', NOT 'g'
+    - th → t (ท, ธ, ถ)
     - ch → j (จ) when at word start
-    - initial k → g (ก)
+    - initial k → g (ก) - ONLY if not from 'kh'
 
     Args:
         rtgs: RTGS romanization string
@@ -67,17 +67,22 @@ def rtgs_to_paiboon(rtgs: str) -> str:
     """
     result = rtgs
 
+    # Track if word starts with 'kh' (which becomes 'k', not 'g')
+    had_initial_kh = result.startswith('kh')
+    had_initial_ch = result.startswith('ch')
+
     # Replace digraphs with Paiboon equivalents
     result = result.replace('ph', 'p')
     result = result.replace('kh', 'k')
     result = result.replace('th', 't')
 
-    # ch → j for จ sound (at word start)
-    if result.startswith('ch'):
+    # ch → j for จ sound (ONLY at word start)
+    if had_initial_ch:
         result = 'j' + result[2:]
 
-    # Initial k → g (for ก in Paiboon)
-    if result.startswith('k'):
+    # Initial k → g ONLY if it wasn't originally 'kh'
+    # (ก → g, but ข/ค → k)
+    if result.startswith('k') and not had_initial_kh:
         result = 'g' + result[1:]
 
     return result
