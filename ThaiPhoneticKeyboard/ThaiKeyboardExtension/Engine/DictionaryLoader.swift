@@ -66,8 +66,30 @@ class DictionaryLoader {
             return ([:], [:])
         }
 
-        let bigrams = json["bigrams"] as? [String: Int] ?? [:]
-        let trigrams = json["trigrams"] as? [String: Int] ?? [:]
+        // Note: Direct casting with `as? [String: Int]` crashes on iOS due to a Swift runtime
+        // issue when bridging NSDictionary containing Thai Unicode characters to Swift Dictionary.
+        // Manual iteration works around this issue with negligible performance impact.
+
+        var bigrams: [String: Int] = [:]
+        var trigrams: [String: Int] = [:]
+
+        if let bigramsDict = json["bigrams"] as? [String: Any] {
+            bigrams.reserveCapacity(bigramsDict.count)
+            for (key, value) in bigramsDict {
+                if let intValue = value as? Int {
+                    bigrams[key] = intValue
+                }
+            }
+        }
+
+        if let trigramsDict = json["trigrams"] as? [String: Any] {
+            trigrams.reserveCapacity(trigramsDict.count)
+            for (key, value) in trigramsDict {
+                if let intValue = value as? Int {
+                    trigrams[key] = intValue
+                }
+            }
+        }
 
         return (bigrams, trigrams)
     }
