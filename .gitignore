@@ -39,3 +39,4 @@ tnc_freq.txt
 Package.resolved
 ThaiPhoneticKeyboard/build
 *.xcuserstate
+*.code-workspace
