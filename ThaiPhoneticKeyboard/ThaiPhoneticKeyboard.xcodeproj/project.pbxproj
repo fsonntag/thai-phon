@@ -8,10 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		3FE8C1382EA3EE6400236691 /* ThaiKeyboardExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3FE8C1312EA3EE6400236691 /* ThaiKeyboardExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		3FE8C1622EA3F00A00236691 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8C15F2EA3EFDE00236691 /* Constants.swift */; };
-		3FE8C1632EA3F00A00236691 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8C15F2EA3EFDE00236691 /* Constants.swift */; };
 		3FE8C1642EA3F01000236691 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8C1602EA3EFDE00236691 /* Extensions.swift */; };
 		3FE8C1652EA3F01000236691 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8C1602EA3EFDE00236691 /* Extensions.swift */; };
+		3FE8C16C2EA4B4DB00236691 /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3FE8C16B2EA4B4DB00236691 /* KeyboardKit */; };
+		3FE8C1702EA4B50E00236691 /* KeyboardApp+Thai.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8C16F2EA4B50E00236691 /* KeyboardApp+Thai.swift */; };
+		3FE8C1712EA4B50E00236691 /* KeyboardApp+Thai.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8C16F2EA4B50E00236691 /* KeyboardApp+Thai.swift */; };
+		3FE8C1732EA4B86300236691 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8C1722EA4B86300236691 /* Constants.swift */; };
+		3FE8C1742EA4B86300236691 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8C1722EA4B86300236691 /* Constants.swift */; };
+		3FE8C17D2EA4C2DB00236691 /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3FE8C17C2EA4C2DB00236691 /* KeyboardKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,8 +45,9 @@
 /* Begin PBXFileReference section */
 		3FE8C11F2EA3EDA800236691 /* ThaiPhoneticKeyboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThaiPhoneticKeyboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FE8C1312EA3EE6400236691 /* ThaiKeyboardExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ThaiKeyboardExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		3FE8C15F2EA3EFDE00236691 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		3FE8C1602EA3EFDE00236691 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		3FE8C16F2EA4B50E00236691 /* KeyboardApp+Thai.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KeyboardApp+Thai.swift"; sourceTree = "<group>"; };
+		3FE8C1722EA4B86300236691 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -95,6 +100,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3FE8C16C2EA4B4DB00236691 /* KeyboardKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -102,6 +108,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3FE8C17D2EA4C2DB00236691 /* KeyboardKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,6 +122,7 @@
 				3FE8C1322EA3EE6400236691 /* ThaiKeyboardExtension */,
 				3FE8C1202EA3EDA800236691 /* Products */,
 				3FE8C1612EA3EFDE00236691 /* Shared */,
+				3FE8C17B2EA4C2DB00236691 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -130,10 +138,18 @@
 		3FE8C1612EA3EFDE00236691 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				3FE8C15F2EA3EFDE00236691 /* Constants.swift */,
+				3FE8C1722EA4B86300236691 /* Constants.swift */,
+				3FE8C16F2EA4B50E00236691 /* KeyboardApp+Thai.swift */,
 				3FE8C1602EA3EFDE00236691 /* Extensions.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		3FE8C17B2EA4C2DB00236691 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -158,6 +174,7 @@
 			);
 			name = ThaiPhoneticKeyboard;
 			packageProductDependencies = (
+				3FE8C16B2EA4B4DB00236691 /* KeyboardKit */,
 			);
 			productName = ThaiPhoneticKeyboard;
 			productReference = 3FE8C11F2EA3EDA800236691 /* ThaiPhoneticKeyboard.app */;
@@ -180,6 +197,7 @@
 			);
 			name = ThaiKeyboardExtension;
 			packageProductDependencies = (
+				3FE8C17C2EA4C2DB00236691 /* KeyboardKit */,
 			);
 			productName = ThaiKeyboardExtension;
 			productReference = 3FE8C1312EA3EE6400236691 /* ThaiKeyboardExtension.appex */;
@@ -212,6 +230,9 @@
 			);
 			mainGroup = 3FE8C1162EA3EDA800236691;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				3FE8C16A2EA4B4DB00236691 /* XCRemoteSwiftPackageReference "KeyboardKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3FE8C1202EA3EDA800236691 /* Products */;
 			projectDirPath = "";
@@ -246,7 +267,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				3FE8C1642EA3F01000236691 /* Extensions.swift in Sources */,
-				3FE8C1622EA3F00A00236691 /* Constants.swift in Sources */,
+				3FE8C1702EA4B50E00236691 /* KeyboardApp+Thai.swift in Sources */,
+				3FE8C1732EA4B86300236691 /* Constants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -254,8 +276,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3FE8C1712EA4B50E00236691 /* KeyboardApp+Thai.swift in Sources */,
+				3FE8C1742EA4B86300236691 /* Constants.swift in Sources */,
 				3FE8C1652EA3F01000236691 /* Extensions.swift in Sources */,
-				3FE8C1632EA3F00A00236691 /* Constants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -546,6 +569,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3FE8C16A2EA4B4DB00236691 /* XCRemoteSwiftPackageReference "KeyboardKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/KeyboardKit/KeyboardKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.0.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3FE8C16B2EA4B4DB00236691 /* KeyboardKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3FE8C16A2EA4B4DB00236691 /* XCRemoteSwiftPackageReference "KeyboardKit" */;
+			productName = KeyboardKit;
+		};
+		3FE8C17C2EA4C2DB00236691 /* KeyboardKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3FE8C16A2EA4B4DB00236691 /* XCRemoteSwiftPackageReference "KeyboardKit" */;
+			productName = KeyboardKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3FE8C1172EA3EDA800236691 /* Project object */;
 }

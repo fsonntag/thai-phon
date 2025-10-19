@@ -8,8 +8,6 @@
 import Foundation
 import OSLog
 
-private let logger = Logger(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "DictionaryLoader")
-
 struct DictionaryData {
     let dictionary: [String: [String]]
     let bigramFrequencies: [String: Int]
@@ -27,7 +25,7 @@ class DictionaryLoader {
 
         // Load main dictionary
         guard let dictionary = loadDictionary() else {
-            logger.error("Failed to load dictionary")
+            os_log("Failed to load dictionary", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "DictionaryLoader"), type: .error)
             return nil
         }
 
@@ -35,7 +33,7 @@ class DictionaryLoader {
         let (bigrams, trigrams) = loadNgramFrequencies()
 
         let loadTime = Date().timeIntervalSince(startTime)
-        logger.info("Loaded dictionary: \(dictionary.count) entries, \(bigrams.count) bigrams, \(trigrams.count) trigrams in \(String(format: "%.3f", loadTime))s")
+        os_log("Loaded dictionary: %d entries, %d bigrams, %d trigrams in %.3fs", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "DictionaryLoader"), type: .info, dictionary.count, bigrams.count, trigrams.count, loadTime)
 
         return DictionaryData(
             dictionary: dictionary,
@@ -46,27 +44,44 @@ class DictionaryLoader {
 
     /// Load Thai romanization dictionary from JSON
     private func loadDictionary() -> [String: [String]]? {
-        guard let bundlePath = Bundle.main.path(forResource: AppConstants.dictionaryFileName, ofType: "json"),
-              let jsonData = try? Data(contentsOf: URL(fileURLWithPath: bundlePath)),
-              let dict = try? JSONSerialization.jsonObject(with: jsonData) as? [String: [String]] else {
+        // Use Bundle(for:) to get the extension's bundle, not the main app bundle
+        let bundle = Bundle(for: DictionaryLoader.self)
+
+        guard let bundlePath = bundle.path(forResource: AppConstants.dictionaryFileName, ofType: "json") else {
+            os_log("❌ Dictionary file not found in bundle", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "DictionaryLoader"), type: .error)
             return nil
         }
 
+        guard let jsonData = try? Data(contentsOf: URL(fileURLWithPath: bundlePath)) else {
+            os_log("❌ Failed to read dictionary file", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "DictionaryLoader"), type: .error)
+            return nil
+        }
+
+        guard let dict = try? JSONSerialization.jsonObject(with: jsonData) as? [String: [String]] else {
+            os_log("❌ Failed to parse dictionary JSON", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "DictionaryLoader"), type: .error)
+            return nil
+        }
+
+        os_log("✅ Dictionary loaded successfully from bundle", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "DictionaryLoader"), type: .info)
         return dict
     }
 
     /// Load n-gram frequencies from JSON
     private func loadNgramFrequencies() -> (bigrams: [String: Int], trigrams: [String: Int]) {
-        guard let bundlePath = Bundle.main.path(forResource: AppConstants.ngramFileName, ofType: "json"),
+        // Use Bundle(for:) to get the extension's bundle
+        let bundle = Bundle(for: DictionaryLoader.self)
+
+        guard let bundlePath = bundle.path(forResource: AppConstants.ngramFileName, ofType: "json"),
               let jsonData = try? Data(contentsOf: URL(fileURLWithPath: bundlePath)),
               let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
-            logger.warning("Failed to load n-gram frequencies")
+            os_log("⚠️ Failed to load n-gram frequencies", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "DictionaryLoader"), type: .default)
             return ([:], [:])
         }
 
         let bigrams = json["bigrams"] as? [String: Int] ?? [:]
         let trigrams = json["trigrams"] as? [String: Int] ?? [:]
 
+        os_log("✅ N-gram frequencies loaded successfully", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "DictionaryLoader"), type: .info)
         return (bigrams, trigrams)
     }
 }

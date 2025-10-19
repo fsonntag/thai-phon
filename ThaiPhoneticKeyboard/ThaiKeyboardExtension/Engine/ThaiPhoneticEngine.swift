@@ -10,8 +10,6 @@ import Foundation
 import Combine
 import OSLog
 
-private let logger = Logger(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "Engine")
-
 class ThaiPhoneticEngine: ObservableObject {
     // MARK: - Published Properties
 
@@ -44,7 +42,7 @@ class ThaiPhoneticEngine: ObservableObject {
     func loadDictionaries() {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let data = DictionaryLoader.shared.loadDictionaries() else {
-                logger.error("Failed to load dictionaries")
+                os_log("Failed to load dictionaries", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "Engine"), type: .error)
                 return
             }
 
@@ -53,7 +51,7 @@ class ThaiPhoneticEngine: ObservableObject {
                 self?.bigramFrequencies = data.bigramFrequencies
                 self?.trigramFrequencies = data.trigramFrequencies
                 self?.isLoaded = true
-                logger.info("Dictionary loaded successfully")
+                os_log("Dictionary loaded successfully", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "Engine"), type: .info)
             }
         }
     }
@@ -61,7 +59,8 @@ class ThaiPhoneticEngine: ObservableObject {
     // MARK: - Input Handling
 
     func appendCharacter(_ char: String) {
-        composedBuffer.append(char.lowercased())
+        // Preserve original case in buffer for display
+        composedBuffer.append(char)
         updateCandidates()
     }
 
@@ -249,44 +248,53 @@ class ThaiPhoneticEngine: ObservableObject {
             return
         }
 
+        var candidates: [String] = []
+
+        // Use lowercase version for all dictionary lookups
+        let lookupBuffer = composedBuffer.lowercased()
+
         // Try single-word lookup first (exact match)
-        if let candidates = dictionary[composedBuffer] {
-            currentCandidates = Array(candidates.prefix(KeyboardConstants.maxCandidates))
-            return
-        }
+        if let exactMatches = dictionary[lookupBuffer] {
+            candidates = Array(exactMatches.prefix(AppConstants.maxCandidates - 1))
+        } else {
+            // Try single-word fuzzy matching
+            let fuzzyVariants = FuzzyMatching.generateFuzzyVariants(lookupBuffer)
+            var singleWordCandidates: [String] = []
+            var seenWords = Set<String>()
 
-        // Try single-word fuzzy matching
-        let fuzzyVariants = FuzzyMatching.generateFuzzyVariants(composedBuffer)
-        var singleWordCandidates: [String] = []
-        var seenWords = Set<String>()
+            for variant in fuzzyVariants {
+                if let matches = dictionary[variant] {
+                    for candidate in matches {
+                        if !seenWords.contains(candidate) {
+                            singleWordCandidates.append(candidate)
+                            seenWords.insert(candidate)
+                        }
+                    }
+                }
+            }
 
-        for variant in fuzzyVariants {
-            if let candidates = dictionary[variant] {
-                for candidate in candidates {
-                    if !seenWords.contains(candidate) {
-                        singleWordCandidates.append(candidate)
-                        seenWords.insert(candidate)
+            // If single-word lookup found results, use them
+            if !singleWordCandidates.isEmpty {
+                candidates = Array(singleWordCandidates.prefix(AppConstants.maxCandidates - 1))
+            } else {
+                // Try multi-word segmentation
+                if let segments = greedySegment(lookupBuffer) {
+                    let multiWordCandidates = generateMultiWordCandidates(segments)
+                    if !multiWordCandidates.isEmpty {
+                        candidates = Array(multiWordCandidates.prefix(5))  // Max 5 to leave room for romanization
                     }
                 }
             }
         }
 
-        // If single-word lookup found results, use them
-        if !singleWordCandidates.isEmpty {
-            currentCandidates = Array(singleWordCandidates.prefix(KeyboardConstants.maxCandidates))
-            return
+        // Always add the English romanization (original case) as the last candidate
+        if !candidates.isEmpty {
+            candidates.append(composedBuffer)
+        } else {
+            // If no Thai candidates, just show the romanization (original case)
+            candidates = [composedBuffer]
         }
 
-        // Try multi-word segmentation
-        if let segments = greedySegment(composedBuffer) {
-            let multiWordCandidates = generateMultiWordCandidates(segments)
-            if !multiWordCandidates.isEmpty {
-                currentCandidates = Array(multiWordCandidates.prefix(6))  // Max 6 for multi-word
-                return
-            }
-        }
-
-        // No matches found
-        currentCandidates = []
+        currentCandidates = candidates
     }
 }
