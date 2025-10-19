@@ -1,0 +1,6 @@
+# Python dependencies for iOS icon generation
+# Thai Phonetic Keyboard App Icon Generator
+
+# PIL/Pillow - Python Imaging Library
+# Used for image creation, gradient generation, text rendering
+Pillow>=10.0.0
