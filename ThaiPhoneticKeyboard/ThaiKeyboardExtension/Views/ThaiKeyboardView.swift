@@ -16,6 +16,8 @@ struct ThaiKeyboardView: View {
     let services: Keyboard.Services
     let onCandidateSelect: (String) -> Void
 
+    @State private var showLanguageLabel = true
+
     // MARK: - Body
 
     var body: some View {
@@ -24,10 +26,25 @@ struct ThaiKeyboardView: View {
             layout: nil,  // Use default layout
             services: services,
            buttonContent: { params in
-               // Customize space key to remove text
+               // Customize space key to show language identifier
                if case .space = params.item.action {
-                   Text("")  // Empty text for space key
-                       .frame(maxWidth: .infinity)
+                   ZStack {
+                       // Main language label that fades out
+                       if showLanguageLabel {
+                           Text("Thai - Phonetic")
+                               .font(.system(size: 15))
+                               .frame(maxWidth: .infinity, maxHeight: .infinity)
+                               .transition(.opacity)
+                       }
+
+                       // Small Thai character indicator - fixed at bottom-right
+                       Text("ส")
+                           .font(.system(size: 12))
+                           .foregroundColor(.secondary)
+                           .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                           .padding(.trailing, 8)
+                           .padding(.bottom, 6)
+                   }
                } else {
                    params.view  // Default view for other keys
                }
@@ -44,6 +61,14 @@ struct ThaiKeyboardView: View {
                 romanization: engine.composedBuffer,
                 onSelect: onCandidateSelect
             )
+        }
+        .onAppear {
+            // Fade out language label after 1 second
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    showLanguageLabel = false
+                }
+            }
         }
     }
 }
