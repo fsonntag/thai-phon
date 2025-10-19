@@ -7,7 +7,6 @@
 
 import KeyboardKit
 import UIKit
-import OSLog
 
 class ThaiActionHandler: KeyboardAction.StandardActionHandler {
 
@@ -15,7 +14,6 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
 
     // Make engine internal so it can be accessed by autocomplete provider
     lazy var engine: ThaiPhoneticEngine = {
-        os_log("🟢 ThaiPhoneticEngine initialized", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "ThaiActionHandler"), type: .info)
         return ThaiPhoneticEngine()
     }()
 
@@ -25,8 +23,6 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
 
     /// Manually commit a specific candidate (called when user taps a candidate)
     func commitCandidate(_ candidate: String) {
-        os_log("👆 Manual candidate selection: %{public}@", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "ThaiActionHandler"), type: .info, candidate)
-
         // Delete the romanization from document
         for _ in 0..<bufferLength {
             keyboardContext.textDocumentProxy.deleteBackward()
@@ -79,8 +75,6 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
     // MARK: - Thai Input Handling
 
     private func handleCharacter(_ char: String) {
-        os_log("🔤 Character input: %{public}@", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "ThaiActionHandler"), type: .debug, char)
-
         // Check if it's a letter (a-z, A-Z)
         let letters = CharacterSet.letters
         if char.count == 1,
@@ -90,7 +84,6 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
 
             // Add to Thai phonetic engine (preserving original case)
             engine.appendCharacter(char)
-            os_log("📝 Buffer: %{public}@, Candidates: %d", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "ThaiActionHandler"), type: .debug, engine.composedBuffer, engine.currentCandidates.count)
 
             // Delete existing romanization from document and insert updated buffer
             // This way the user sees the romanization being built up: "P" -> "Po" -> "Pom"
@@ -114,8 +107,6 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
     }
 
     private func handleSpace() {
-        os_log("⎵ Space pressed, buffer: %{public}@", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "ThaiActionHandler"), type: .debug, engine.composedBuffer)
-
         if !engine.composedBuffer.isEmpty {
             // Delete the romanization from document
             for _ in 0..<bufferLength {
@@ -126,11 +117,9 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
             // Commit first Thai candidate if available
             if let candidate = engine.getFirstCandidate() {
                 keyboardContext.textDocumentProxy.insertText(candidate)
-                os_log("✅ Committed Thai: %{public}@", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "ThaiActionHandler"), type: .info, candidate)
             } else {
                 // No candidates, output romanization as English
                 keyboardContext.textDocumentProxy.insertText(engine.composedBuffer)
-                os_log("⚠️ No candidates, output romanization: %{public}@", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "ThaiActionHandler"), type: .info, engine.composedBuffer)
             }
             engine.clearBuffer()
 
@@ -143,8 +132,6 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
     }
 
     private func handleBackspace() {
-        os_log("⌫ Backspace pressed, buffer: %{public}@", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "ThaiActionHandler"), type: .debug, engine.composedBuffer)
-
         if !engine.composedBuffer.isEmpty {
             // Delete from Thai input buffer
             engine.deleteCharacter()
@@ -167,8 +154,6 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
                 keyboardContext.textDocumentProxy.insertText(engine.composedBuffer)
                 bufferLength = engine.composedBuffer.count
             }
-
-            os_log("⌫ After delete, buffer: %{public}@, length: %d", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "ThaiActionHandler"), type: .debug, engine.composedBuffer, bufferLength)
         } else {
             // Delete from document normally
             keyboardContext.textDocumentProxy.deleteBackward()
@@ -189,7 +174,6 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
         // Insert Thai or romanization
         if let candidate = engine.getFirstCandidate() {
             keyboardContext.textDocumentProxy.insertText(candidate)
-            os_log("✅ Auto-committed Thai: %{public}@", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "ThaiActionHandler"), type: .info, candidate)
         } else {
             keyboardContext.textDocumentProxy.insertText(engine.composedBuffer)
         }

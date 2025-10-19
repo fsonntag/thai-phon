@@ -8,7 +8,6 @@
 
 import Foundation
 import Combine
-import OSLog
 
 class ThaiPhoneticEngine: ObservableObject {
     // MARK: - Published Properties
@@ -42,7 +41,6 @@ class ThaiPhoneticEngine: ObservableObject {
     func loadDictionaries() {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let data = DictionaryLoader.shared.loadDictionaries() else {
-                os_log("Failed to load dictionaries", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "Engine"), type: .error)
                 return
             }
 
@@ -51,7 +49,6 @@ class ThaiPhoneticEngine: ObservableObject {
                 self?.bigramFrequencies = data.bigramFrequencies
                 self?.trigramFrequencies = data.trigramFrequencies
                 self?.isLoaded = true
-                os_log("Dictionary loaded successfully", log: OSLog(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "Engine"), type: .info)
             }
         }
     }

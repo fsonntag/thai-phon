@@ -14,7 +14,7 @@ extension KeyboardApp {
         .init(
             name: "Thai Phonetic",
             licenseKey: nil,
-            appGroupId: nil,
+            appGroupId: "group.com.fsonntag.ThaiPhoneticKeyboard",
             locales: [Locale(identifier: "en"), Locale(identifier: "th")],
             deepLinks: .init(app: "thaiphonetic://")
         )
