@@ -34,3 +34,6 @@ tnc_freq.txt
 *.tmp
 *.bak
 *~
+
+# Swift Package Manager
+Package.resolved
