@@ -35,3 +35,4 @@ tnc_freq.txt
 *.bak
 *~
 ThaiPhoneticKeyboard/build
+*.xcuserstate
