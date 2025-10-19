@@ -6,9 +6,6 @@
 //
 
 import Foundation
-import OSLog
-
-private let logger = Logger(subsystem: "com.fsonntag.ThaiPhoneticKeyboard.extension", category: "DictionaryLoader")
 
 struct DictionaryData {
     let dictionary: [String: [String]]
@@ -23,19 +20,13 @@ class DictionaryLoader {
 
     /// Load dictionary and n-gram data from bundle
     func loadDictionaries() -> DictionaryData? {
-        let startTime = Date()
-
         // Load main dictionary
         guard let dictionary = loadDictionary() else {
-            logger.error("Failed to load dictionary")
             return nil
         }
 
         // Load n-gram frequencies
         let (bigrams, trigrams) = loadNgramFrequencies()
-
-        let loadTime = Date().timeIntervalSince(startTime)
-        logger.info("Loaded dictionary: \(dictionary.count) entries, \(bigrams.count) bigrams, \(trigrams.count) trigrams in \(String(format: "%.3f", loadTime))s")
 
         return DictionaryData(
             dictionary: dictionary,
@@ -46,9 +37,18 @@ class DictionaryLoader {
 
     /// Load Thai romanization dictionary from JSON
     private func loadDictionary() -> [String: [String]]? {
-        guard let bundlePath = Bundle.main.path(forResource: AppConstants.dictionaryFileName, ofType: "json"),
-              let jsonData = try? Data(contentsOf: URL(fileURLWithPath: bundlePath)),
-              let dict = try? JSONSerialization.jsonObject(with: jsonData) as? [String: [String]] else {
+        // Use Bundle(for:) to get the extension's bundle, not the main app bundle
+        let bundle = Bundle(for: DictionaryLoader.self)
+
+        guard let bundlePath = bundle.path(forResource: AppConstants.dictionaryFileName, ofType: "json") else {
+            return nil
+        }
+
+        guard let jsonData = try? Data(contentsOf: URL(fileURLWithPath: bundlePath)) else {
+            return nil
+        }
+
+        guard let dict = try? JSONSerialization.jsonObject(with: jsonData) as? [String: [String]] else {
             return nil
         }
 
@@ -57,15 +57,39 @@ class DictionaryLoader {
 
     /// Load n-gram frequencies from JSON
     private func loadNgramFrequencies() -> (bigrams: [String: Int], trigrams: [String: Int]) {
-        guard let bundlePath = Bundle.main.path(forResource: AppConstants.ngramFileName, ofType: "json"),
+        // Use Bundle(for:) to get the extension's bundle
+        let bundle = Bundle(for: DictionaryLoader.self)
+
+        guard let bundlePath = bundle.path(forResource: AppConstants.ngramFileName, ofType: "json"),
               let jsonData = try? Data(contentsOf: URL(fileURLWithPath: bundlePath)),
               let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
-            logger.warning("Failed to load n-gram frequencies")
             return ([:], [:])
         }
 
-        let bigrams = json["bigrams"] as? [String: Int] ?? [:]
-        let trigrams = json["trigrams"] as? [String: Int] ?? [:]
+        // Note: Direct casting with `as? [String: Int]` crashes on iOS due to a Swift runtime
+        // issue when bridging NSDictionary containing Thai Unicode characters to Swift Dictionary.
+        // Manual iteration works around this issue with negligible performance impact.
+
+        var bigrams: [String: Int] = [:]
+        var trigrams: [String: Int] = [:]
+
+        if let bigramsDict = json["bigrams"] as? [String: Any] {
+            bigrams.reserveCapacity(bigramsDict.count)
+            for (key, value) in bigramsDict {
+                if let intValue = value as? Int {
+                    bigrams[key] = intValue
+                }
+            }
+        }
+
+        if let trigramsDict = json["trigrams"] as? [String: Any] {
+            trigrams.reserveCapacity(trigramsDict.count)
+            for (key, value) in trigramsDict {
+                if let intValue = value as? Int {
+                    trigrams[key] = intValue
+                }
+            }
+        }
 
         return (bigrams, trigrams)
     }

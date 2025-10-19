@@ -37,3 +37,5 @@ tnc_freq.txt
 
 # Swift Package Manager
 Package.resolved
+ThaiPhoneticKeyboard/build
+*.xcuserstate

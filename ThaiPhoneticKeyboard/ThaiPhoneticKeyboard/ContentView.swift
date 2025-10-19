@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
                     // App icon/logo
@@ -71,8 +71,18 @@ struct ContentView: View {
                                 .cornerRadius(12)
                         }
 
+                        NavigationLink(destination: SettingsView()) {
+                            Label("Keyboard Settings", systemImage: "slider.horizontal.3")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.green)
+                                .cornerRadius(12)
+                        }
+
                         Button(action: openSettings) {
-                            Label("Open Settings", systemImage: "gear")
+                            Label("Open iOS Settings", systemImage: "gear")
                                 .font(.headline)
                                 .foregroundColor(.primary)
                                 .frame(maxWidth: .infinity)
