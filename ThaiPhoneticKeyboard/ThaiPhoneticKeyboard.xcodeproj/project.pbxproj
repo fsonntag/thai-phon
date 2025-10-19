@@ -16,6 +16,8 @@
 		3FE8C1732EA4B86300236691 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8C1722EA4B86300236691 /* Constants.swift */; };
 		3FE8C1742EA4B86300236691 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8C1722EA4B86300236691 /* Constants.swift */; };
 		3FE8C17D2EA4C2DB00236691 /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 3FE8C17C2EA4C2DB00236691 /* KeyboardKit */; };
+		3FE8C1A12EA5090800236691 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8C1602EA3EFDE00236691 /* Extensions.swift */; };
+		3FE8C1A22EA5090800236691 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FE8C1722EA4B86300236691 /* Constants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,6 +27,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 3FE8C1302EA3EE6400236691;
 			remoteInfo = ThaiKeyboardExtension;
+		};
+		3FE8C1942EA5070D00236691 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3FE8C1172EA3EDA800236691 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3FE8C11E2EA3EDA800236691;
+			remoteInfo = ThaiPhoneticKeyboard;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -48,6 +57,7 @@
 		3FE8C1602EA3EFDE00236691 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		3FE8C16F2EA4B50E00236691 /* KeyboardApp+Thai.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KeyboardApp+Thai.swift"; sourceTree = "<group>"; };
 		3FE8C1722EA4B86300236691 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		3FE8C1902EA5070D00236691 /* ThaiPhoneticKeyboardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ThaiPhoneticKeyboardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -73,6 +83,16 @@
 			);
 			target = 3FE8C11E2EA3EDA800236691 /* ThaiPhoneticKeyboard */;
 		};
+		3FE8C1A02EA508D300236691 /* Exceptions for "ThaiKeyboardExtension" folder in "ThaiPhoneticKeyboardTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Engine/DictionaryLoader.swift,
+				Engine/FuzzyMatching.swift,
+				Engine/ThaiPhoneticEngine.swift,
+				ThaiActionHandler.swift,
+			);
+			target = 3FE8C18F2EA5070D00236691 /* ThaiPhoneticKeyboardTests */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -89,8 +109,14 @@
 			exceptions = (
 				3FE8C1682EA3F04500236691 /* Exceptions for "ThaiKeyboardExtension" folder in "ThaiPhoneticKeyboard" target */,
 				3FE8C1392EA3EE6400236691 /* Exceptions for "ThaiKeyboardExtension" folder in "ThaiKeyboardExtension" target */,
+				3FE8C1A02EA508D300236691 /* Exceptions for "ThaiKeyboardExtension" folder in "ThaiPhoneticKeyboardTests" target */,
 			);
 			path = ThaiKeyboardExtension;
+			sourceTree = "<group>";
+		};
+		3FE8C1912EA5070D00236691 /* ThaiPhoneticKeyboardTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ThaiPhoneticKeyboardTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -112,6 +138,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3FE8C18D2EA5070D00236691 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -120,6 +153,7 @@
 			children = (
 				3FE8C1212EA3EDA800236691 /* ThaiPhoneticKeyboard */,
 				3FE8C1322EA3EE6400236691 /* ThaiKeyboardExtension */,
+				3FE8C1912EA5070D00236691 /* ThaiPhoneticKeyboardTests */,
 				3FE8C1202EA3EDA800236691 /* Products */,
 				3FE8C1612EA3EFDE00236691 /* Shared */,
 				3FE8C17B2EA4C2DB00236691 /* Frameworks */,
@@ -131,6 +165,7 @@
 			children = (
 				3FE8C11F2EA3EDA800236691 /* ThaiPhoneticKeyboard.app */,
 				3FE8C1312EA3EE6400236691 /* ThaiKeyboardExtension.appex */,
+				3FE8C1902EA5070D00236691 /* ThaiPhoneticKeyboardTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -203,6 +238,29 @@
 			productReference = 3FE8C1312EA3EE6400236691 /* ThaiKeyboardExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		3FE8C18F2EA5070D00236691 /* ThaiPhoneticKeyboardTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3FE8C1962EA5070D00236691 /* Build configuration list for PBXNativeTarget "ThaiPhoneticKeyboardTests" */;
+			buildPhases = (
+				3FE8C18C2EA5070D00236691 /* Sources */,
+				3FE8C18D2EA5070D00236691 /* Frameworks */,
+				3FE8C18E2EA5070D00236691 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3FE8C1952EA5070D00236691 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				3FE8C1912EA5070D00236691 /* ThaiPhoneticKeyboardTests */,
+			);
+			name = ThaiPhoneticKeyboardTests;
+			packageProductDependencies = (
+			);
+			productName = ThaiPhoneticKeyboardTests;
+			productReference = 3FE8C1902EA5070D00236691 /* ThaiPhoneticKeyboardTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -218,6 +276,10 @@
 					};
 					3FE8C1302EA3EE6400236691 = {
 						CreatedOnToolsVersion = 26.0.1;
+					};
+					3FE8C18F2EA5070D00236691 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 3FE8C11E2EA3EDA800236691;
 					};
 				};
 			};
@@ -240,6 +302,7 @@
 			targets = (
 				3FE8C11E2EA3EDA800236691 /* ThaiPhoneticKeyboard */,
 				3FE8C1302EA3EE6400236691 /* ThaiKeyboardExtension */,
+				3FE8C18F2EA5070D00236691 /* ThaiPhoneticKeyboardTests */,
 			);
 		};
 /* End PBXProject section */
@@ -253,6 +316,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		3FE8C12F2EA3EE6400236691 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3FE8C18E2EA5070D00236691 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -282,6 +352,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3FE8C18C2EA5070D00236691 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3FE8C1A12EA5090800236691 /* Extensions.swift in Sources */,
+				3FE8C1A22EA5090800236691 /* Constants.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -289,6 +368,11 @@
 			isa = PBXTargetDependency;
 			target = 3FE8C1302EA3EE6400236691 /* ThaiKeyboardExtension */;
 			targetProxy = 3FE8C1362EA3EE6400236691 /* PBXContainerItemProxy */;
+		};
+		3FE8C1952EA5070D00236691 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3FE8C11E2EA3EDA800236691 /* ThaiPhoneticKeyboard */;
+			targetProxy = 3FE8C1942EA5070D00236691 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -542,6 +626,48 @@
 			};
 			name = Release;
 		};
+		3FE8C1972EA5070D00236691 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UC22W52F8S;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fsonntag.ThaiPhoneticKeyboard.ThaiPhoneticKeyboardTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ThaiPhoneticKeyboard.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ThaiPhoneticKeyboard";
+			};
+			name = Debug;
+		};
+		3FE8C1982EA5070D00236691 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UC22W52F8S;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fsonntag.ThaiPhoneticKeyboard.ThaiPhoneticKeyboardTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ThaiPhoneticKeyboard.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ThaiPhoneticKeyboard";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -568,6 +694,15 @@
 			buildConfigurations = (
 				3FE8C13B2EA3EE6400236691 /* Debug */,
 				3FE8C13C2EA3EE6400236691 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3FE8C1962EA5070D00236691 /* Build configuration list for PBXNativeTarget "ThaiPhoneticKeyboardTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3FE8C1972EA5070D00236691 /* Debug */,
+				3FE8C1982EA5070D00236691 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

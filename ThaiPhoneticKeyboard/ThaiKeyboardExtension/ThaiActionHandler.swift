@@ -50,6 +50,9 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
                     self?.handleCharacter(char)
                 }
             }
+            // For other gestures, use standard handling
+            return super.action(for: gesture, on: action)
+
         case .space:
             // Intercept space to commit Thai text
             if gesture == .release {
@@ -57,19 +60,23 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
                     self?.handleSpace()
                 }
             }
+            // For other gestures, use standard handling
+            return super.action(for: gesture, on: action)
+
         case .backspace:
-            // Intercept backspace to delete from buffer if needed
-            if gesture == .press || gesture == .release {
+            // Intercept backspace to manage our buffer
+            if gesture == .release {
                 return { [weak self] _ in
                     self?.handleBackspace()
                 }
             }
-        default:
-            break
-        }
+            // Use standard handling for other gestures
+            return super.action(for: gesture, on: action)
 
-        // Use standard handling for all other cases
-        return super.action(for: gesture, on: action)
+        default:
+            // Use standard handling for all other cases
+            return super.action(for: gesture, on: action)
+        }
     }
 
     // MARK: - Thai Input Handling
@@ -85,17 +92,9 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
             // Add to Thai phonetic engine (preserving original case)
             engine.appendCharacter(char)
 
-            // Delete existing romanization from document and insert updated buffer
-            // This way the user sees the romanization being built up: "P" -> "Po" -> "Pom"
-            if bufferLength > 0 {
-                for _ in 0..<bufferLength {
-                    keyboardContext.textDocumentProxy.deleteBackward()
-                }
-            }
-
-            // Insert the full romanization buffer (with original case preserved)
-            keyboardContext.textDocumentProxy.insertText(engine.composedBuffer)
-            bufferLength = engine.composedBuffer.count
+            // Just insert the new character (engine only appends, doesn't transform existing buffer)
+            keyboardContext.textDocumentProxy.insertText(char)
+            bufferLength += 1
 
         } else {
             // Not a letter - commit any pending Thai text first
@@ -133,30 +132,9 @@ class ThaiActionHandler: KeyboardAction.StandardActionHandler {
 
     private func handleBackspace() {
         if !engine.composedBuffer.isEmpty {
-            // Delete from Thai input buffer
+            // Delete from engine buffer to keep it in sync with document
             engine.deleteCharacter()
-
-            // Delete one char from document and re-insert updated buffer
-            keyboardContext.textDocumentProxy.deleteBackward()
             bufferLength -= 1
-
-            // If buffer is now empty, we're done
-            if engine.composedBuffer.isEmpty {
-                bufferLength = 0
-            } else {
-                // Re-insert the updated buffer
-                // First delete all remaining buffer chars
-                for _ in 0..<bufferLength {
-                    keyboardContext.textDocumentProxy.deleteBackward()
-                }
-
-                // Then insert the updated buffer
-                keyboardContext.textDocumentProxy.insertText(engine.composedBuffer)
-                bufferLength = engine.composedBuffer.count
-            }
-        } else {
-            // Delete from document normally
-            keyboardContext.textDocumentProxy.deleteBackward()
         }
     }
 
