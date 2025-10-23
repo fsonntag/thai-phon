@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Thai Phonetic Keyboard</string>
+    <string name="ime_name">Thai Phonetic</string>
+    <string name="keyboard_settings">Keyboard Settings</string>
+    <string name="enable_keyboard_instructions">To enable the keyboard:\n\n1. Go to Settings → System → Languages &amp; input\n2. Select "Virtual keyboard"\n3. Enable "Thai Phonetic"\n4. Return to any app and select the keyboard</string>
+</resources>
