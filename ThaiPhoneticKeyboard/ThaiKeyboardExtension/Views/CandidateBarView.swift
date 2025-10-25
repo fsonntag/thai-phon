@@ -32,11 +32,15 @@ struct CandidateBarView: View {
                                     .font(.system(size: 18))
                                     .foregroundColor(index == 0 ? .black : .primary)
                                     .padding(.horizontal, 10)
-                                    .padding(.vertical, 6)
+                                    .padding(.vertical, 10)
                                     .background(
-                                        index == 0 ? Color.white.opacity(0.9) : Color.clear
+                                        index == 0 ?
+                                            RoundedRectangle(cornerRadius: 4)
+                                                .fill(Color.white.opacity(0.9))
+                                                .padding(.horizontal, 4)
+                                                .padding(.vertical, 4)
+                                            : nil
                                     )
-                                    .cornerRadius(5)
                             }
                             .buttonStyle(.plain)
                             .padding(.leading, index == 0 ? 8 : 0)  // Extra spacing for first candidate
