@@ -285,6 +285,160 @@ def export_android_icons(script_dir):
     return True
 
 
+def create_adaptive_icon_background(size):
+    """Create background layer for adaptive icon (gradient only)"""
+    # Background should fill entire 108dp canvas
+    return create_gradient_background(size)
+
+
+def create_adaptive_icon_foreground(size):
+    """Create foreground layer for adaptive icon (character on transparent)"""
+    # Foreground: transparent background with character
+    # Character should be sized for 66dp safe zone (centered in 108dp canvas)
+    # This means we need more padding than the regular icon
+
+    img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+
+    # For adaptive icons, the character should fit in the 66dp safe zone
+    # which is 61% of the 108dp canvas (66/108 = 0.611)
+    # We'll use 55% to have some extra breathing room
+    font_size = int(size * 0.55)
+    font = get_thai_font(font_size)
+    text = "ส"
+
+    draw = ImageDraw.Draw(img)
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+    # Center the character
+    x = (size - text_width) // 2 - bbox[0]
+    y = (size - text_height) // 2 - bbox[1]
+
+    # Add subtle shadow for depth
+    shadow_offset = max(1, int(size * SHADOW_OFFSET_RATIO))
+    shadow_layer = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    shadow_draw = ImageDraw.Draw(shadow_layer)
+    shadow_draw.text(
+        (x + shadow_offset, y + shadow_offset),
+        text,
+        fill=SHADOW_COLOR,
+        font=font
+    )
+    img = Image.alpha_composite(img, shadow_layer)
+
+    # Draw the main white character
+    draw = ImageDraw.Draw(img)
+    draw.text((x, y), text, fill=CHAR_COLOR, font=font)
+
+    return img
+
+
+def create_adaptive_icon_monochrome(size):
+    """Create monochrome layer for themed icons (Android 13+)"""
+    # Monochrome: transparent background with black character
+    # Used by system for themed icons in App Suggestions, Quick Settings, etc.
+
+    img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+
+    # Same sizing as foreground for consistency
+    font_size = int(size * 0.55)
+    font = get_thai_font(font_size)
+    text = "ส"
+
+    draw = ImageDraw.Draw(img)
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = bbox[2] - bbox[0]
+    text_height = bbox[3] - bbox[1]
+
+    # Center the character
+    x = (size - text_width) // 2 - bbox[0]
+    y = (size - text_height) // 2 - bbox[1]
+
+    # Draw black character (system will colorize it)
+    # Use pure black (not white) as per Android guidelines
+    draw.text((x, y), text, fill=(0, 0, 0, 255), font=font)
+
+    return img
+
+
+def export_android_adaptive_icons(script_dir):
+    """Export Android adaptive icon layers (background + foreground)"""
+    print("\n📱 Exporting Android adaptive icons...")
+
+    # Path to Android res directory
+    android_res_dir = script_dir.parent / "ThaiPhoneticAndroid" / "app" / "src" / "main" / "res"
+
+    # Check if Android project exists
+    if not android_res_dir.exists():
+        print(f"  ⚠️  Warning: Android res directory not found at {android_res_dir}")
+        print("  Skipping Android adaptive icon export.")
+        return False
+
+    # Adaptive icon sizes (108dp base for all layers)
+    # Format: (density_name, size_px for 108dp)
+    adaptive_densities = [
+        ("mdpi", 108),      # Baseline (1x)
+        ("hdpi", 162),      # 1.5x
+        ("xhdpi", 216),     # 2x
+        ("xxhdpi", 324),    # 3x
+        ("xxxhdpi", 432),   # 4x
+    ]
+
+    for density, size in adaptive_densities:
+        # Generate background layer
+        print(f"  Generating mipmap-{density}/ic_launcher_background.png ({size}×{size}px)...", end=" ")
+        mipmap_dir = android_res_dir / f"mipmap-{density}"
+        mipmap_dir.mkdir(parents=True, exist_ok=True)
+
+        background = create_adaptive_icon_background(size)
+        bg_path = mipmap_dir / "ic_launcher_background.png"
+        background.save(bg_path, 'PNG', optimize=True)
+        print("✓")
+
+        # Generate foreground layer
+        print(f"  Generating mipmap-{density}/ic_launcher_foreground.png ({size}×{size}px)...", end=" ")
+        foreground = create_adaptive_icon_foreground(size)
+        fg_path = mipmap_dir / "ic_launcher_foreground.png"
+        foreground.save(fg_path, 'PNG', optimize=True)
+        print("✓")
+
+        # Generate monochrome layer (for themed icons)
+        print(f"  Generating mipmap-{density}/ic_launcher_monochrome.png ({size}×{size}px)...", end=" ")
+        monochrome = create_adaptive_icon_monochrome(size)
+        mono_path = mipmap_dir / "ic_launcher_monochrome.png"
+        monochrome.save(mono_path, 'PNG', optimize=True)
+        print("✓")
+
+    # Create adaptive icon XML files
+    print("  Creating adaptive icon XML...", end=" ")
+
+    # Create mipmap-anydpi-v26 directory
+    adaptive_dir = android_res_dir / "mipmap-anydpi-v26"
+    adaptive_dir.mkdir(parents=True, exist_ok=True)
+
+    # Adaptive icon XML content (with monochrome for themed icons)
+    adaptive_icon_xml = '''<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@mipmap/ic_launcher_background"/>
+    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+    <monochrome android:drawable="@mipmap/ic_launcher_monochrome"/>
+</adaptive-icon>'''
+
+    # Write ic_launcher.xml
+    with open(adaptive_dir / "ic_launcher.xml", 'w', encoding='utf-8') as f:
+        f.write(adaptive_icon_xml)
+
+    # Write ic_launcher_round.xml (same content)
+    with open(adaptive_dir / "ic_launcher_round.xml", 'w', encoding='utf-8') as f:
+        f.write(adaptive_icon_xml)
+
+    print("✓")
+    print(f"  📁 Location: {android_res_dir}")
+
+    return True
+
+
 def main():
     """Generate all iOS app icons and Contents.json"""
 
@@ -341,6 +495,9 @@ def main():
     # Export Android icons
     android_exported = export_android_icons(script_dir)
 
+    # Export Android adaptive icons
+    adaptive_exported = export_android_adaptive_icons(script_dir)
+
     print()
     print("=" * 60)
     print("📦 Summary")
@@ -353,13 +510,22 @@ def main():
     print(f"  📁 {assets_dir}")
 
     if android_exported:
-        print("\nAndroid Icons:")
+        print("\nAndroid Legacy Icons (API < 26):")
         print("  ✓ mipmap-mdpi/ic_launcher.png (48×48px)")
         print("  ✓ mipmap-hdpi/ic_launcher.png (72×72px)")
         print("  ✓ mipmap-xhdpi/ic_launcher.png (96×96px)")
         print("  ✓ mipmap-xxhdpi/ic_launcher.png (144×144px)")
         print("  ✓ mipmap-xxxhdpi/ic_launcher.png (192×192px)")
         android_res = script_dir.parent / "ThaiPhoneticAndroid" / "app" / "src" / "main" / "res"
+        print(f"  📁 {android_res}")
+
+    if adaptive_exported:
+        print("\nAndroid Adaptive Icons (API 26+):")
+        print("  ✓ mipmap-anydpi-v26/ic_launcher.xml")
+        print("  ✓ mipmap-anydpi-v26/ic_launcher_round.xml")
+        print("  ✓ Background layers (5 densities, 108dp base)")
+        print("  ✓ Foreground layers (5 densities, 108dp base)")
+        print("  ✓ Monochrome layers (5 densities, for themed icons)")
         print(f"  📁 {android_res}")
 
     print("\n" + "=" * 60)
@@ -370,15 +536,19 @@ def main():
     print("  1. Open Xcode project")
     print("  2. Build and run - icons are already in Assets.xcassets")
 
-    if android_exported:
+    if android_exported or adaptive_exported:
         print("\nAndroid:")
         print("  1. Open Android Studio project")
-        print("  2. AndroidManifest.xml has been updated to use @mipmap/ic_launcher")
-        print("  3. Build and run to see the new icon")
+        print("  2. AndroidManifest.xml already references @mipmap/ic_launcher")
+        if adaptive_exported:
+            print("  3. Adaptive icons will be used on Android 8.0+ (API 26+)")
+            print("  4. Legacy icons will be used on Android 7.1 and below")
+        print("  5. Build and run to see the proper icon (no white circle!)")
 
     print("\n🎯 Icon design:")
     print("  • Background: Indigo gradient (iOS keyboard theme)")
     print("  • Character: White ส (Thai phonetic)")
+    print("  • Android: Adaptive icon with separate background/foreground layers")
     print("  • Style: Modern, flat, Apple HIG & Material Design compliant")
     print()
 

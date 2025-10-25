@@ -20,7 +20,7 @@ Generate professional app icons for both iOS and Android versions of the Thai Ph
 ### 1. Create Virtual Environment
 
 ```bash
-cd ios-icon
+cd icon-generator
 python3 -m venv venv
 source venv/bin/activate
 ```
@@ -34,7 +34,7 @@ pip install -r requirements.txt
 ### 3. Generate Icons
 
 ```bash
-python generate_ios_icons.py
+python generate_icons.py
 ```
 
 This will automatically create icon sets for both platforms:
@@ -45,11 +45,12 @@ This will automatically create icon sets for both platforms:
 - Proper `Contents.json` files with Xcode asset catalog metadata
 
 **Android** (in `ThaiPhoneticAndroid/.../res`):
-- `mipmap-mdpi/ic_launcher.png` - 48×48px
-- `mipmap-hdpi/ic_launcher.png` - 72×72px
-- `mipmap-xhdpi/ic_launcher.png` - 96×96px
-- `mipmap-xxhdpi/ic_launcher.png` - 144×144px
-- `mipmap-xxxhdpi/ic_launcher.png` - 192×192px
+- Adaptive icon layers (background, foreground, monochrome) for all densities
+- `mipmap-anydpi-v26/ic_launcher.xml` - Adaptive icon configuration
+- `mipmap-anydpi-v26/ic_launcher_round.xml` - Round icon configuration
+- Background layers (gradient only) for mdpi through xxxhdpi
+- Foreground layers (white ส on transparent) for mdpi through xxxhdpi
+- Monochrome layers (black ส for themed icons) for mdpi through xxxhdpi
 
 ### 4. Build Projects
 
@@ -83,11 +84,17 @@ ThaiPhoneticKeyboard/ThaiPhoneticKeyboard/Assets.xcassets/
 **Android:**
 ```
 ThaiPhoneticAndroid/app/src/main/res/
-├── mipmap-mdpi/ic_launcher.png
-├── mipmap-hdpi/ic_launcher.png
-├── mipmap-xhdpi/ic_launcher.png
-├── mipmap-xxhdpi/ic_launcher.png
-└── mipmap-xxxhdpi/ic_launcher.png
+├── mipmap-anydpi-v26/
+│   ├── ic_launcher.xml              # Adaptive icon config
+│   └── ic_launcher_round.xml        # Round icon config
+├── mipmap-mdpi/
+│   ├── ic_launcher_background.png   # 108×108px gradient
+│   ├── ic_launcher_foreground.png   # 108×108px white ส
+│   └── ic_launcher_monochrome.png   # 108×108px black ส
+├── mipmap-hdpi/ (same pattern, 162×162px)
+├── mipmap-xhdpi/ (same pattern, 216×216px)
+├── mipmap-xxhdpi/ (same pattern, 324×324px)
+└── mipmap-xxxhdpi/ (same pattern, 432×432px)
 ```
 
 ## Generated Icon Sizes
@@ -121,17 +128,22 @@ The script generates all required iOS app icon sizes in `AppIcon.appiconset`:
 
 ### Android
 
-Android launcher icons for all density buckets:
+Android adaptive icon layers (108dp base canvas, 66dp safe zone for content):
 
-- **mdpi (Medium):** 48×48px - Baseline density (160 dpi)
-- **hdpi (High):** 72×72px - 1.5× baseline (240 dpi)
-- **xhdpi (Extra-high):** 96×96px - 2× baseline (320 dpi)
-- **xxhdpi (Extra-extra-high):** 144×144px - 3× baseline (480 dpi)
-- **xxxhdpi (Extra-extra-extra-high):** 192×192px - 4× baseline (640 dpi)
+- **mdpi (Medium):** 108×108px - Baseline density (160 dpi)
+- **hdpi (High):** 162×162px - 1.5× baseline (240 dpi)
+- **xhdpi (Extra-high):** 216×216px - 2× baseline (320 dpi)
+- **xxhdpi (Extra-extra-high):** 324×324px - 3× baseline (480 dpi)
+- **xxxhdpi (Extra-extra-extra-high):** 432×432px - 4× baseline (640 dpi)
+
+Each density includes three layers:
+- **Background:** Gradient only, no transparency
+- **Foreground:** White ส on transparent background
+- **Monochrome:** Black ส for themed icons (Android 13+)
 
 ## Customization
 
-To change colors or design, edit the constants at the top of `generate_ios_icons.py`:
+To change colors or design, edit the constants at the top of `generate_icons.py`:
 
 ```python
 # Design Configuration
@@ -144,7 +156,7 @@ CHAR_SIZE_RATIO = 0.65         # 65% of icon size
 Then regenerate:
 
 ```bash
-python generate_ios_icons.py
+python generate_icons.py
 ```
 
 ## Design Rationale
