@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct TutorialView: View {
+    @State private var testInput: String = ""
+    @FocusState private var isTextEditorFocused: Bool
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
@@ -59,6 +62,78 @@ struct TutorialView: View {
                         UsagePoint(text: "Type English normally when not matching Thai")
                         UsagePoint(text: "Press 123 for numbers and punctuation")
                     }
+                }
+
+                Divider()
+
+                // Try It Now section
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Try It Now")
+                        .font(.title2)
+                        .bold()
+
+                    Text("Practice typing with the Thai Phonetic keyboard")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        // Text editor for practice
+                        TextEditor(text: $testInput)
+                            .frame(minHeight: 120)
+                            .padding(12)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(isTextEditorFocused ? Color.blue : Color.clear, lineWidth: 2)
+                            )
+                            .focused($isTextEditorFocused)
+
+                        // Hint text
+                        HStack(spacing: 8) {
+                            Image(systemName: "lightbulb.fill")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                            Text("Try: sawatdi, khapkhun, sabaidemai, aroidemai")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 4)
+
+                        // Clear button
+                        if !testInput.isEmpty {
+                            Button(action: {
+                                testInput = ""
+                            }) {
+                                HStack {
+                                    Image(systemName: "trash")
+                                    Text("Clear")
+                                }
+                                .font(.subheadline)
+                                .foregroundColor(.red)
+                            }
+                            .padding(.top, 4)
+                        }
+                    }
+
+                    // Reminder card
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.blue)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Keyboard must be enabled")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            Text("Make sure you've followed the setup steps above and switched to the Thai Phonetic keyboard using the 🌐 key.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .padding()
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(12)
                 }
 
                 Divider()

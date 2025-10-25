@@ -13,9 +13,12 @@ struct ContentView: View {
             ScrollView {
                 VStack(spacing: 24) {
                     // App icon/logo
-                    Image(systemName: "keyboard.fill")
-                        .font(.system(size: 80))
-                        .foregroundColor(.blue)
+                    Image("AppIconDisplay")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 100, height: 100)
+                        .cornerRadius(22.5)
+                        .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
                         .padding(.top, 40)
 
                     Text("Thai Phonetic Keyboard")
