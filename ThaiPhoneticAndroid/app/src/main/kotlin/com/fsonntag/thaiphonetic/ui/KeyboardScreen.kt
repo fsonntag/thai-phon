@@ -1,5 +1,7 @@
 package com.fsonntag.thaiphonetic.ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -9,15 +11,21 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import com.fsonntag.thaiphonetic.ime.ThaiPhoneticIME
+import kotlinx.coroutines.delay
 
 /**
  * Key to alternate character mappings for long-press
@@ -58,7 +66,7 @@ fun KeyboardScreen(
             modifier = modifier
                 .fillMaxWidth()
                 .height(280.dp)
-                .background(MaterialTheme.colorScheme.surface), // Material Design 3 surface
+                .background(Color(0xFFD3D8DE)), // Sleek light gray background
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             // Row 1: QWERTY
@@ -248,19 +256,36 @@ private fun KeyButton(
     isSpecial: Boolean = false,
     isActive: Boolean = false
 ) {
+    var isPressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(durationMillis = 100),
+        label = "keyPressScale"
+    )
+
     Surface(
         onClick = { onKey(key) },
         modifier = modifier
             .fillMaxHeight()
-            .padding(3.dp),
-        shape = RoundedCornerShape(8.dp), // Material Design 3 rounded corners
+            .padding(2.dp)
+            .scale(scale)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    }
+                )
+            },
+        shape = RoundedCornerShape(6.dp), // Sleeker, slightly smaller radius
         color = when {
-            isActive -> MaterialTheme.colorScheme.primary // Active state (shift enabled)
-            isSpecial -> MaterialTheme.colorScheme.secondaryContainer // Special keys
-            else -> MaterialTheme.colorScheme.surfaceVariant // Regular keys
+            isActive -> Color(0xFF4A90E2) // Sleek blue for active
+            isSpecial -> Color(0xFFADB5BD) // Subtle gray for special keys
+            else -> Color(0xFFFFFFFF) // Clean white for regular keys
         },
-        tonalElevation = if (isActive) 3.dp else 1.dp,
-        shadowElevation = if (isActive) 4.dp else 2.dp
+        tonalElevation = 0.dp, // Flat design
+        shadowElevation = if (isPressed) 0.dp else 1.dp // Subtle shadow only when not pressed
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -268,12 +293,12 @@ private fun KeyButton(
         ) {
             Text(
                 text = label,
-                fontSize = 18.sp,
+                fontSize = 20.sp, // Slightly larger for better readability
                 textAlign = TextAlign.Center,
                 color = when {
-                    isActive -> MaterialTheme.colorScheme.onPrimary
-                    isSpecial -> MaterialTheme.colorScheme.onSecondaryContainer
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    isActive -> Color.White
+                    isSpecial -> Color(0xFF212529) // Dark gray text
+                    else -> Color(0xFF212529) // Dark gray text
                 },
                 style = MaterialTheme.typography.bodyLarge
             )
@@ -284,6 +309,7 @@ private fun KeyButton(
 /**
  * Letter key button with long-press support and visual hint
  * Shows the alternate character in top-right corner with lighter font
+ * Displays popup on long-press for visual confirmation
  */
 @Composable
 private fun LongPressLetterKeyButton(
@@ -294,44 +320,120 @@ private fun LongPressLetterKeyButton(
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(3.dp)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { onKey(key) },
-                    onLongPress = { onLongPress() }
-                )
-            },
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 1.dp,
-        shadowElevation = 2.dp
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // Main label (centered)
-            Text(
-                text = label,
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyLarge
-            )
+    var isPressed by remember { mutableStateOf(false) }
+    var showPopup by remember { mutableStateOf(false) }
+    var popupChar by remember { mutableStateOf("") }
+    var isLongPress by remember { mutableStateOf(false) }
 
-            // Alternate character hint (top-right corner)
-            Text(
-                text = alternateChar,
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                style = MaterialTheme.typography.labelSmall,
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(durationMillis = 100),
+        label = "keyPressScale"
+    )
+
+    Box(modifier = modifier.fillMaxHeight()) {
+        // Popup ABOVE button - connected design like iOS
+        if (showPopup) {
+            Box(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 4.dp, end = 4.dp)
-            )
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .align(Alignment.TopCenter)
+                    .offset(y = (-50).dp) // Closer to button
+                    .zIndex(100f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(width = 60.dp, height = 70.dp) // Taller to connect better
+                        .background(
+                            color = Color(0xFF4A90E2),
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Draw text directly on Canvas
+                    androidx.compose.foundation.Canvas(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        val textPaint = android.graphics.Paint().apply {
+                            color = android.graphics.Color.WHITE
+                            textSize = 24.sp.toPx() // Same as regular key text (20sp + bold looks like 24sp)
+                            textAlign = android.graphics.Paint.Align.CENTER
+                            isAntiAlias = true
+                            typeface = android.graphics.Typeface.DEFAULT_BOLD
+                        }
+                        drawContext.canvas.nativeCanvas.drawText(
+                            popupChar,
+                            size.width / 2,
+                            size.height / 2 + (textPaint.textSize / 3),
+                            textPaint
+                        )
+                    }
+                }
+            }
+        }
+
+        Surface(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(2.dp)
+                .scale(scale)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onLongPress = {
+                            isLongPress = true
+                            popupChar = alternateChar
+                            showPopup = true
+                            onLongPress()
+                        },
+                        onPress = {
+                            isPressed = true
+                            isLongPress = false
+                            popupChar = label
+                            showPopup = true
+
+                            val released = tryAwaitRelease()
+
+                            showPopup = false
+                            isPressed = false
+
+                            // If it was a tap (not long press), trigger onKey
+                            if (released && !isLongPress) {
+                                onKey(key)
+                            }
+                        }
+                    )
+                },
+            shape = RoundedCornerShape(6.dp),
+            color = Color(0xFFFFFFFF), // White key
+            tonalElevation = 0.dp,
+            shadowElevation = if (isPressed) 0.dp else 1.dp
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Main label (centered)
+                Text(
+                    text = label,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
+                    color = Color(0xFF212529),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                // Alternate character hint (top-right corner)
+                Text(
+                    text = alternateChar,
+                    fontSize = 11.sp,
+                    color = Color(0xFF6C757D), // Medium gray
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 3.dp, end = 3.dp)
+                )
+            }
         }
     }
 }
@@ -348,27 +450,40 @@ private fun ShiftKeyButton(
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var isPressed by remember { mutableStateOf(false) }
     val isActive = shiftState != ThaiPhoneticIME.ShiftState.OFF
     val isLocked = shiftState == ThaiPhoneticIME.ShiftState.LOCKED
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(durationMillis = 100),
+        label = "shiftPressScale"
+    )
 
     Surface(
         modifier = modifier
             .fillMaxHeight()
-            .padding(3.dp)
+            .padding(2.dp)
+            .scale(scale)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { onKey("SHIFT") },
-                    onLongPress = { onLongPress() }
+                    onLongPress = { onLongPress() },
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    }
                 )
             },
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(6.dp),
         color = when (shiftState) {
-            ThaiPhoneticIME.ShiftState.LOCKED -> MaterialTheme.colorScheme.primary
-            ThaiPhoneticIME.ShiftState.ONCE -> MaterialTheme.colorScheme.primaryContainer
-            ThaiPhoneticIME.ShiftState.OFF -> MaterialTheme.colorScheme.secondaryContainer
+            ThaiPhoneticIME.ShiftState.LOCKED -> Color(0xFF4A90E2) // Sleek blue
+            ThaiPhoneticIME.ShiftState.ONCE -> Color(0xFF90CAF9) // Light blue
+            ThaiPhoneticIME.ShiftState.OFF -> Color(0xFFADB5BD) // Subtle gray
         },
-        tonalElevation = if (isActive) 3.dp else 1.dp,
-        shadowElevation = if (isActive) 4.dp else 2.dp
+        tonalElevation = 0.dp,
+        shadowElevation = if (isPressed) 0.dp else 1.dp
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -376,14 +491,17 @@ private fun ShiftKeyButton(
         ) {
             Text(
                 text = if (isLocked) "⇪" else "⇧", // Different icon for caps lock
-                fontSize = 18.sp,
+                fontSize = 38.sp, // Extra large icon for visibility
                 textAlign = TextAlign.Center,
                 color = when (shiftState) {
-                    ThaiPhoneticIME.ShiftState.LOCKED -> MaterialTheme.colorScheme.onPrimary
-                    ThaiPhoneticIME.ShiftState.ONCE -> MaterialTheme.colorScheme.onPrimaryContainer
-                    ThaiPhoneticIME.ShiftState.OFF -> MaterialTheme.colorScheme.onSecondaryContainer
+                    ThaiPhoneticIME.ShiftState.LOCKED -> Color.White
+                    ThaiPhoneticIME.ShiftState.ONCE -> Color.White
+                    ThaiPhoneticIME.ShiftState.OFF -> Color(0xFF212529) // Dark gray
                 },
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Black,
+                    letterSpacing = 0.1.sp
+                )
             )
         }
     }
