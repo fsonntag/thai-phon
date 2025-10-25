@@ -179,17 +179,133 @@ def generate_contents_json():
     return contents
 
 
+def export_contentview_icon(script_dir):
+    """Export a separate icon for use in ContentView UI"""
+    print("\n📱 Exporting ContentView display icon...")
+
+    # Path to Assets in the iOS project
+    assets_dir = script_dir.parent / "ThaiPhoneticKeyboard" / "ThaiPhoneticKeyboard" / "Assets.xcassets"
+
+    # Check if Assets directory exists
+    if not assets_dir.exists():
+        print(f"  ⚠️  Warning: Assets.xcassets not found at {assets_dir}")
+        print("  Skipping ContentView icon export.")
+        return False
+
+    output_dir = assets_dir / "AppIconDisplay.imageset"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Create @1x, @2x, @3x versions for proper iOS scaling
+    sizes = [
+        (512, "AppIconDisplay.png"),
+        (1024, "AppIconDisplay@2x.png"),
+        (1536, "AppIconDisplay@3x.png"),
+    ]
+
+    for img_size, filename in sizes:
+        print(f"  Generating {filename} ({img_size}×{img_size}px)...", end=" ")
+        icon = create_icon(img_size)
+        filepath = output_dir / filename
+        icon.save(filepath, 'PNG', optimize=True)
+        print("✓")
+
+    # Create Contents.json for the image set
+    contents = {
+        "images": [
+            {
+                "filename": "AppIconDisplay.png",
+                "idiom": "universal",
+                "scale": "1x"
+            },
+            {
+                "filename": "AppIconDisplay@2x.png",
+                "idiom": "universal",
+                "scale": "2x"
+            },
+            {
+                "filename": "AppIconDisplay@3x.png",
+                "idiom": "universal",
+                "scale": "3x"
+            }
+        ],
+        "info": {
+            "author": "xcode",
+            "version": 1
+        }
+    }
+
+    contents_path = output_dir / "Contents.json"
+    with open(contents_path, 'w', encoding='utf-8') as f:
+        json.dump(contents, f, indent=2, ensure_ascii=False)
+    print("  ✓ Created Contents.json")
+    print(f"  📁 Location: {output_dir}")
+
+    return True
+
+
+def export_android_icons(script_dir):
+    """Export Android launcher icons for all density buckets"""
+    print("\n🤖 Exporting Android launcher icons...")
+
+    # Path to Android res directory
+    android_res_dir = script_dir.parent / "ThaiPhoneticAndroid" / "app" / "src" / "main" / "res"
+
+    # Check if Android project exists
+    if not android_res_dir.exists():
+        print(f"  ⚠️  Warning: Android res directory not found at {android_res_dir}")
+        print("  Skipping Android icon export.")
+        return False
+
+    # Android icon sizes for different density buckets
+    # Format: (density_name, size_px)
+    android_densities = [
+        ("mdpi", 48),      # Baseline (1x)
+        ("hdpi", 72),      # 1.5x
+        ("xhdpi", 96),     # 2x
+        ("xxhdpi", 144),   # 3x
+        ("xxxhdpi", 192),  # 4x
+    ]
+
+    for density, size in android_densities:
+        print(f"  Generating mipmap-{density}/ic_launcher.png ({size}×{size}px)...", end=" ")
+
+        # Create mipmap directory
+        mipmap_dir = android_res_dir / f"mipmap-{density}"
+        mipmap_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate icon
+        icon = create_icon(size)
+
+        # Save as ic_launcher.png
+        filepath = mipmap_dir / "ic_launcher.png"
+        icon.save(filepath, 'PNG', optimize=True)
+        print("✓")
+
+    print(f"  📁 Location: {android_res_dir}")
+    return True
+
+
 def main():
     """Generate all iOS app icons and Contents.json"""
 
-    # Create output directory
     script_dir = Path(__file__).parent
-    output_dir = script_dir / "AppIcon.appiconset"
-    output_dir.mkdir(exist_ok=True)
+
+    # Path to Assets in the iOS project
+    assets_dir = script_dir.parent / "ThaiPhoneticKeyboard" / "ThaiPhoneticKeyboard" / "Assets.xcassets"
+
+    # Check if Assets directory exists
+    if not assets_dir.exists():
+        print(f"⚠️  Error: Assets.xcassets not found at {assets_dir}")
+        print("Please ensure the script is in the correct location relative to the iOS project.")
+        return
 
     print("🎨 Generating iOS App Icons for Thai Phonetic Keyboard")
-    print(f"📁 Output directory: {output_dir}")
+    print(f"📁 Assets location: {assets_dir}")
     print()
+
+    # Create output directory for app icons
+    output_dir = assets_dir / "AppIcon.appiconset"
+    output_dir.mkdir(exist_ok=True)
 
     # Get all unique sizes needed
     sizes_needed = {
@@ -217,18 +333,53 @@ def main():
     print("✓")
 
     print()
-    print("✅ Success! All icons generated.")
+    print("✅ Success! iOS app icons generated.")
+
+    # Export ContentView icon
+    contentview_exported = export_contentview_icon(script_dir)
+
+    # Export Android icons
+    android_exported = export_android_icons(script_dir)
+
     print()
-    print("📦 Next steps:")
-    print("  1. Open your Xcode project")
-    print("  2. Navigate to Assets.xcassets")
-    print("  3. Delete the existing AppIcon (if any)")
-    print(f"  4. Drag the entire 'AppIcon.appiconset' folder into Assets.xcassets")
-    print()
-    print("🎯 Icon design:")
-    print(f"  • Background: Indigo gradient (iOS keyboard theme)")
-    print(f"  • Character: White ส (Thai phonetic)")
-    print(f"  • Style: Modern, flat, Apple HIG compliant")
+    print("=" * 60)
+    print("📦 Summary")
+    print("=" * 60)
+
+    print("\niOS Icons:")
+    print("  ✓ AppIcon.appiconset/ - All iOS app icons (13 sizes)")
+    if contentview_exported:
+        print("  ✓ AppIconDisplay.imageset/ - ContentView display icon (@1x, @2x, @3x)")
+    print(f"  📁 {assets_dir}")
+
+    if android_exported:
+        print("\nAndroid Icons:")
+        print("  ✓ mipmap-mdpi/ic_launcher.png (48×48px)")
+        print("  ✓ mipmap-hdpi/ic_launcher.png (72×72px)")
+        print("  ✓ mipmap-xhdpi/ic_launcher.png (96×96px)")
+        print("  ✓ mipmap-xxhdpi/ic_launcher.png (144×144px)")
+        print("  ✓ mipmap-xxxhdpi/ic_launcher.png (192×192px)")
+        android_res = script_dir.parent / "ThaiPhoneticAndroid" / "app" / "src" / "main" / "res"
+        print(f"  📁 {android_res}")
+
+    print("\n" + "=" * 60)
+    print("✅ Ready to use!")
+    print("=" * 60)
+
+    print("\niOS:")
+    print("  1. Open Xcode project")
+    print("  2. Build and run - icons are already in Assets.xcassets")
+
+    if android_exported:
+        print("\nAndroid:")
+        print("  1. Open Android Studio project")
+        print("  2. AndroidManifest.xml has been updated to use @mipmap/ic_launcher")
+        print("  3. Build and run to see the new icon")
+
+    print("\n🎯 Icon design:")
+    print("  • Background: Indigo gradient (iOS keyboard theme)")
+    print("  • Character: White ส (Thai phonetic)")
+    print("  • Style: Modern, flat, Apple HIG & Material Design compliant")
     print()
 
 

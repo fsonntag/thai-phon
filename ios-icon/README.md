@@ -1,6 +1,6 @@
-# Thai Phonetic Keyboard - iOS App Icon Generator
+# Thai Phonetic Keyboard - App Icon Generator
 
-Generate professional iOS app icons for the Thai Phonetic Keyboard app, featuring the Thai letter **ส** (from สัทอักษร meaning "phonetic") on a modern indigo gradient background.
+Generate professional app icons for both iOS and Android versions of the Thai Phonetic Keyboard, featuring the Thai letter **ส** (from สัทอักษร meaning "phonetic") on a modern indigo gradient background.
 
 ## Design
 
@@ -37,17 +37,31 @@ pip install -r requirements.txt
 python generate_ios_icons.py
 ```
 
-This will create the `AppIcon.appiconset` folder containing:
-- 13 PNG files at all required iOS sizes (20px to 1024px)
-- `Contents.json` with proper Xcode asset catalog metadata
+This will automatically create icon sets for both platforms:
 
-### 4. Add to Xcode Project
+**iOS** (in `ThaiPhoneticKeyboard/.../Assets.xcassets`):
+- `AppIcon.appiconset/` - 13 PNG files at all required iOS sizes (20px to 1024px)
+- `AppIconDisplay.imageset/` - ContentView display icon (@1x, @2x, @3x)
+- Proper `Contents.json` files with Xcode asset catalog metadata
 
+**Android** (in `ThaiPhoneticAndroid/.../res`):
+- `mipmap-mdpi/ic_launcher.png` - 48×48px
+- `mipmap-hdpi/ic_launcher.png` - 72×72px
+- `mipmap-xhdpi/ic_launcher.png` - 96×96px
+- `mipmap-xxhdpi/ic_launcher.png` - 144×144px
+- `mipmap-xxxhdpi/ic_launcher.png` - 192×192px
+
+### 4. Build Projects
+
+**iOS:**
 1. Open your iOS project in Xcode
-2. Navigate to `Assets.xcassets` in the Project Navigator
-3. Delete the existing `AppIcon` (if any)
-4. Drag the entire `AppIcon.appiconset` folder into `Assets.xcassets`
-5. Xcode will automatically recognize it as an app icon set
+2. Build and run - the icons are already in place!
+3. ContentView will automatically use the custom icon
+
+**Android:**
+1. Open your Android project in Android Studio
+2. Build and run - icons are in mipmap folders
+3. AndroidManifest.xml already references `@mipmap/ic_launcher`
 
 ### 5. Deactivate Virtual Environment (Optional)
 
@@ -55,9 +69,32 @@ This will create the `AppIcon.appiconset` folder containing:
 deactivate
 ```
 
+## Output Locations
+
+Icons are generated directly in both projects:
+
+**iOS:**
+```
+ThaiPhoneticKeyboard/ThaiPhoneticKeyboard/Assets.xcassets/
+├── AppIcon.appiconset/         # iOS app icons (13 sizes)
+└── AppIconDisplay.imageset/    # ContentView display icon
+```
+
+**Android:**
+```
+ThaiPhoneticAndroid/app/src/main/res/
+├── mipmap-mdpi/ic_launcher.png
+├── mipmap-hdpi/ic_launcher.png
+├── mipmap-xhdpi/ic_launcher.png
+├── mipmap-xxhdpi/ic_launcher.png
+└── mipmap-xxxhdpi/ic_launcher.png
+```
+
 ## Generated Icon Sizes
 
-The script generates all required iOS app icon sizes:
+### iOS
+
+The script generates all required iOS app icon sizes in `AppIcon.appiconset`:
 
 ### iPhone
 - 40×40px (20pt @2x)
@@ -81,6 +118,16 @@ The script generates all required iOS app icon sizes:
 
 ### App Store
 - 1024×1024px (Marketing)
+
+### Android
+
+Android launcher icons for all density buckets:
+
+- **mdpi (Medium):** 48×48px - Baseline density (160 dpi)
+- **hdpi (High):** 72×72px - 1.5× baseline (240 dpi)
+- **xhdpi (Extra-high):** 96×96px - 2× baseline (320 dpi)
+- **xxhdpi (Extra-extra-high):** 144×144px - 3× baseline (480 dpi)
+- **xxxhdpi (Extra-extra-extra-high):** 192×192px - 4× baseline (640 dpi)
 
 ## Customization
 
