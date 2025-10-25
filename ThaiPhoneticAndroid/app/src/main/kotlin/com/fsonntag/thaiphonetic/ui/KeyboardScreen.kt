@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
@@ -477,11 +478,7 @@ private fun ShiftKeyButton(
                 )
             },
         shape = RoundedCornerShape(6.dp),
-        color = when (shiftState) {
-            ThaiPhoneticIME.ShiftState.LOCKED -> Color(0xFF4A90E2) // Sleek blue
-            ThaiPhoneticIME.ShiftState.ONCE -> Color(0xFF90CAF9) // Light blue
-            ThaiPhoneticIME.ShiftState.OFF -> Color(0xFFADB5BD) // Subtle gray
-        },
+        color = Color(0xFFADB5BD), // Subtle gray - same as other special keys
         tonalElevation = 0.dp,
         shadowElevation = if (isPressed) 0.dp else 1.dp
     ) {
@@ -489,20 +486,48 @@ private fun ShiftKeyButton(
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            Text(
-                text = if (isLocked) "⇪" else "⇧", // Different icon for caps lock
-                fontSize = 38.sp, // Extra large icon for visibility
-                textAlign = TextAlign.Center,
-                color = when (shiftState) {
-                    ThaiPhoneticIME.ShiftState.LOCKED -> Color.White
-                    ThaiPhoneticIME.ShiftState.ONCE -> Color.White
-                    ThaiPhoneticIME.ShiftState.OFF -> Color(0xFF212529) // Dark gray
-                },
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Black,
-                    letterSpacing = 0.1.sp
-                )
-            )
+            // Custom wide arrow drawn with Canvas
+            // OFF state: outlined arrow, Active states: filled arrow
+            val arrowColor = Color(0xFF212529) // Dark gray for all states
+            val isActive = shiftState != ThaiPhoneticIME.ShiftState.OFF
+
+            androidx.compose.foundation.Canvas(
+                modifier = Modifier.size(34.dp)
+            ) {
+                val strokeWidth = 2.5f.dp.toPx() // Thinner stroke
+
+                val paint = android.graphics.Paint().apply {
+                    color = arrowColor.toArgb()
+                    isAntiAlias = true
+                    style = if (isActive) {
+                        android.graphics.Paint.Style.FILL_AND_STROKE // Fill with stroke to match outline size
+                    } else {
+                        android.graphics.Paint.Style.STROKE // Outlined when off
+                    }
+                    this.strokeWidth = strokeWidth
+                    strokeJoin = android.graphics.Paint.Join.MITER // Sharp corners
+                    strokeMiter = 10f // Ensure sharp corners don't get clipped
+                }
+
+                val width = size.width
+                val height = size.height
+                val centerX = width / 2
+
+                // Draw a balanced arrow: proportional triangle + stem
+                val path = android.graphics.Path().apply {
+                    // Arrow head (balanced triangle - 60% width)
+                    moveTo(centerX, height * 0.15f) // Top point
+                    lineTo(width * 0.80f, height * 0.45f) // Right point
+                    lineTo(width * 0.675f, height * 0.45f) // Right inner
+                    lineTo(width * 0.675f, height * 0.85f) // Right stem bottom
+                    lineTo(width * 0.325f, height * 0.85f) // Left stem bottom
+                    lineTo(width * 0.325f, height * 0.45f) // Left inner
+                    lineTo(width * 0.20f, height * 0.45f) // Left point
+                    close()
+                }
+
+                drawContext.canvas.nativeCanvas.drawPath(path, paint)
+            }
         }
     }
 }
