@@ -1,6 +1,8 @@
 package com.fsonntag.thaiphonetic.ime
 
+import android.graphics.Color
 import android.inputmethodservice.InputMethodService
+import android.os.Build
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.compose.foundation.layout.Column
@@ -88,6 +90,17 @@ class ThaiPhoneticIME : InputMethodService(), LifecycleOwner, SavedStateRegistry
      * Returns the keyboard view to be displayed.
      */
     override fun onCreateInputView(): View {
+
+        // Set navigation bar color to match keyboard background (light gray)
+        window.window?.let { w ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                w.navigationBarColor = Color.parseColor("#D3D8DE") // Match keyboard background
+            }
+            // For API 26+, set light navigation bar so icons are dark
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                w.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+            }
+        }
 
         // Set lifecycle owner on the window's root view to prevent crashes
         window.window?.decorView?.let { decorView ->

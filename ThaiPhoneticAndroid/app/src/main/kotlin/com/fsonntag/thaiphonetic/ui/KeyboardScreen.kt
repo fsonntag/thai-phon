@@ -516,13 +516,13 @@ private fun ShiftKeyButton(
                 // Draw a balanced arrow: proportional triangle + stem
                 val path = android.graphics.Path().apply {
                     // Arrow head (balanced triangle - 60% width)
-                    moveTo(centerX, height * 0.15f) // Top point
-                    lineTo(width * 0.80f, height * 0.45f) // Right point
-                    lineTo(width * 0.675f, height * 0.45f) // Right inner
-                    lineTo(width * 0.675f, height * 0.85f) // Right stem bottom
-                    lineTo(width * 0.325f, height * 0.85f) // Left stem bottom
-                    lineTo(width * 0.325f, height * 0.45f) // Left inner
-                    lineTo(width * 0.20f, height * 0.45f) // Left point
+                    moveTo(centerX, height * 0.20f) // Top point (lower to reduce height)
+                    lineTo(width * 0.80f, height * 0.48f) // Right point
+                    lineTo(width * 0.675f, height * 0.48f) // Right inner
+                    lineTo(width * 0.675f, height * 0.80f) // Right stem bottom (higher to reduce height)
+                    lineTo(width * 0.325f, height * 0.80f) // Left stem bottom
+                    lineTo(width * 0.325f, height * 0.48f) // Left inner
+                    lineTo(width * 0.20f, height * 0.48f) // Left point
                     close()
                 }
 
