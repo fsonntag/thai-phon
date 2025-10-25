@@ -249,6 +249,16 @@ class ThaiPhoneticEngine(private val context: Context) {
         }
         variants.addAll(tRemoved)
 
+        // Pattern 8: b ↔ p (common phonetic confusion, especially word-final)
+        // Examples: krab ↔ krap (ครับ), tob ↔ top
+        // This handles cases where users type phonetically vs. spelling-based romanization
+        if (roman.contains("b")) {
+            variants.add(roman.replace("b", "p"))
+        }
+        if (roman.contains("p")) {
+            variants.add(roman.replace("p", "b"))
+        }
+
         // Remove any empty or single-char variants
         return variants.filter { it.length >= 2 }.toSet()
     }

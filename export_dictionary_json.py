@@ -172,15 +172,17 @@ def generate_vowel_variants(roman: str) -> List[str]:
     return list(variants)
 
 
-def create_inverted_index(thai_to_roman: Dict[str, List[str]], freq_map: Dict[str, int]) -> Dict[str, List[str]]:
+def create_inverted_index(thai_to_roman: Dict[str, List[str]], freq_map: Dict[str, int], yamok_map: Dict[str, str]) -> Dict[str, List[str]]:
     """
     Create inverted index from romanization to Thai words.
     Adds ONLY Paiboon variants (vowel variants now computed at runtime in Swift).
     Filters to only words that appear in frequency data.
+    Special handling for ๆ (mai yamok) entries and doubled syllables.
 
     Args:
         thai_to_roman: Dictionary mapping Thai words to RTGS romanizations
         freq_map: Dictionary mapping Thai words to frequency counts
+        yamok_map: Dictionary mapping Thai words to RTGS romanizations for yamok words
 
     Returns:
         Dictionary mapping romanizations to Thai words (filtered by frequency)
@@ -188,8 +190,13 @@ def create_inverted_index(thai_to_roman: Dict[str, List[str]], freq_map: Dict[st
     roman_to_thai = {}
 
     for thai_word, romanizations in thai_to_roman.items():
+        # SPECIAL CASE: Always include words with ๆ (mai yamok - repetition mark)
+        # These are often filtered out by frequency data due to spaces
+        has_yamok = 'ๆ' in thai_word
+
         # FILTER: Skip words not in frequency data (uncommon words)
-        if thai_word not in freq_map:
+        # Exception: Always include yamok words
+        if not has_yamok and thai_word not in freq_map:
             continue
 
         for rtgs_roman in romanizations:
@@ -209,15 +216,54 @@ def create_inverted_index(thai_to_roman: Dict[str, List[str]], freq_map: Dict[st
             paiboon = rtgs_to_paiboon(rtgs_roman)
             all_variants.add(paiboon)
 
+            # 3. SPECIAL: For yamok entries with spaces (e.g., "khoi khoi" from "ค่อย ๆ")
+            #    Also add concatenated version without space (e.g., "khoikhoi")
+            #    This allows users to type "khoikhoi" instead of "khoi khoi"
+            if has_yamok and ' ' in rtgs_roman:
+                rtgs_no_space = rtgs_roman.replace(' ', '')
+                all_variants.add(rtgs_no_space)
+                # Also add Paiboon version without space
+                paiboon_no_space = rtgs_to_paiboon(rtgs_no_space)
+                all_variants.add(paiboon_no_space)
+
             # NOTE: Vowel variants are now generated at runtime in Swift for performance
             # See vowel_variants_backup.py for the original logic
 
-            # 3. Add to inverted index
+            # 4. Add to inverted index
             for variant in all_variants:
                 if variant not in roman_to_thai:
                     roman_to_thai[variant] = []
                 if thai_word not in roman_to_thai[variant]:
                     roman_to_thai[variant].append(thai_word)
+
+    # 5. Generate doubled syllable entries for curated yamok words
+    #    Example: สู้ (su) → also add "susu" → สู้ๆ
+    print(f"\nGenerating doubled syllable entries for yamok words...")
+    yamok_entries_added = 0
+    for thai_word, rtgs in yamok_map.items():
+        rtgs = rtgs.lower().strip()
+        if not rtgs:
+            continue
+
+        # Convert to Paiboon
+        paiboon = rtgs_to_paiboon(rtgs)
+
+        # Generate doubled syllable (e.g., "su" → "susu", "gin" → "gingin")
+        doubled_rtgs = rtgs + rtgs
+        doubled_paiboon = paiboon + paiboon
+
+        # Create Thai word with ๆ (e.g., สู้ → สู้ๆ)
+        thai_with_yamok = thai_word + 'ๆ'
+
+        # Add doubled syllable entries
+        for doubled in [doubled_rtgs, doubled_paiboon]:
+            if doubled not in roman_to_thai:
+                roman_to_thai[doubled] = []
+            if thai_with_yamok not in roman_to_thai[doubled]:
+                roman_to_thai[doubled].append(thai_with_yamok)
+                yamok_entries_added += 1
+
+    print(f"Added {yamok_entries_added} doubled syllable entries for yamok words")
 
     return roman_to_thai
 
@@ -246,9 +292,35 @@ def load_frequency_data(freq_path):
     print(f"Loaded frequency data for {len(freq_map)} words")
     return freq_map
 
+
+def load_yamok_words(csv_path: str) -> Dict[str, str]:
+    """
+    Load curated list of Thai words that naturally use ๆ (mai yamok).
+
+    Args:
+        csv_path: Path to yamok_words.csv with format: Thai<TAB>RTGS<TAB>Notes
+
+    Returns:
+        Dictionary mapping Thai words to RTGS romanization
+    """
+    yamok_map = {}
+
+    with open(csv_path, 'r', encoding='utf-8') as f:
+        reader = csv.reader(f, delimiter='\t')
+        next(reader)  # Skip header
+        for row in reader:
+            if len(row) >= 2:
+                thai, rtgs = row[0].strip(), row[1].strip()
+                if thai and rtgs:
+                    yamok_map[thai] = rtgs
+
+    print(f"Loaded {len(yamok_map)} yamok words for doubled syllable generation")
+    return yamok_map
+
 def main():
     csv_path = "/Users/fsonntag/Developer/thai-phon/thai2rom/data.csv"
     freq_path = "/Users/fsonntag/Developer/thai-phon/tnc_freq.txt"
+    yamok_path = "/Users/fsonntag/Developer/thai-phon/yamok_words.csv"
     output_path = "/Users/fsonntag/Developer/thai-phon/ThaiPhoneticIM/dictionary.json"
 
     print("Loading Thai romanization data...")
@@ -257,8 +329,11 @@ def main():
     print("Loading frequency data...")
     freq_map = load_frequency_data(freq_path)
 
+    print("Loading yamok words...")
+    yamok_map = load_yamok_words(yamok_path)
+
     print("Creating inverted index (filtered by frequency)...")
-    roman_to_thai = create_inverted_index(thai_to_roman, freq_map)
+    roman_to_thai = create_inverted_index(thai_to_roman, freq_map, yamok_map)
 
     # Sort candidates by: 1) frequency (most common first), 2) length (shorter first)
     dictionary = {}

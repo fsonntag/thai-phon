@@ -53,6 +53,15 @@ class FuzzyMatchingTest {
             variants.add(roman.replace("d", "t"))
         }
 
+        // Pattern 8: b ↔ p (common phonetic confusion, especially word-final)
+        // Examples: krab ↔ krap (ครับ), tob ↔ top
+        if (roman.contains("b")) {
+            variants.add(roman.replace("b", "p"))
+        }
+        if (roman.contains("p")) {
+            variants.add(roman.replace("p", "b"))
+        }
+
         return variants.filter { it.length >= 2 }.toSet()
     }
 
@@ -134,5 +143,35 @@ class FuzzyMatchingTest {
 
         // Single character should not generate variants (minimum length is 2)
         assertTrue(variants.all { it.length >= 2 }, "All variants should have minimum length of 2")
+    }
+
+    @Test
+    fun `test b to p conversion for krab`() {
+        val variants = generateFuzzyVariants("krab")
+
+        assertTrue(variants.contains("krap"), "Should convert 'b' to 'p' (krab → krap for ครับ)")
+        assertTrue(variants.contains("krab"), "Should keep original 'krab'")
+    }
+
+    @Test
+    fun `test p to b conversion for krap`() {
+        val variants = generateFuzzyVariants("krap")
+
+        assertTrue(variants.contains("krab"), "Should convert 'p' to 'b' (krap → krab)")
+        assertTrue(variants.contains("krap"), "Should keep original 'krap'")
+    }
+
+    @Test
+    fun `test b to p word-final`() {
+        val variants = generateFuzzyVariants("tob")
+
+        assertTrue(variants.contains("top"), "Should convert word-final 'b' to 'p'")
+    }
+
+    @Test
+    fun `test b to p word-initial`() {
+        val variants = generateFuzzyVariants("bai")
+
+        assertTrue(variants.contains("pai"), "Should convert word-initial 'b' to 'p'")
     }
 }

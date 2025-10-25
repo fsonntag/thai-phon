@@ -479,6 +479,16 @@ class ThaiPhoneticIMController: IMKInputController {
         }
         variants.formUnion(tRemoved)
 
+        // Pattern 8: b ↔ p (common phonetic confusion, especially word-final)
+        // Examples: krab ↔ krap (ครับ), tob ↔ top
+        // This handles cases where users type phonetically vs. spelling-based romanization
+        if roman.contains("b") {
+            variants.insert(roman.replacingOccurrences(of: "b", with: "p"))
+        }
+        if roman.contains("p") {
+            variants.insert(roman.replacingOccurrences(of: "p", with: "b"))
+        }
+
         // Remove any empty or single-char variants
         return variants.filter { $0.count >= 2 }
     }
