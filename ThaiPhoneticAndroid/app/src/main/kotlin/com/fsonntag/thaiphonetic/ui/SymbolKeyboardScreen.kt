@@ -44,7 +44,7 @@ fun SymbolKeyboardScreen1(
             modifier = modifier
                 .fillMaxWidth()
                 .height(280.dp)
-                .background(Color(0xFFD3D8DE)), // Sleek light gray background
+                .background(KeyboardStyle.BACKGROUND_COLOR), // Sleek light gray background
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             // Row 1: Numbers with Thai numeral long-press (10 keys)
@@ -177,7 +177,7 @@ fun SymbolKeyboardScreen2(
             modifier = modifier
                 .fillMaxWidth()
                 .height(280.dp)
-                .background(Color(0xFFD3D8DE)), // Sleek light gray background
+                .background(KeyboardStyle.BACKGROUND_COLOR), // Sleek light gray background
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             // Row 1: Brackets and special chars (10 keys)
@@ -321,7 +321,7 @@ private fun SymbolKeyButton(
         onClick = { onKey(key) },
         modifier = modifier
             .fillMaxHeight()
-            .padding(2.dp)
+            .padding(KeyboardStyle.KEY_PADDING)
             .scale(scale)
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -332,10 +332,10 @@ private fun SymbolKeyButton(
                     }
                 )
             },
-        shape = RoundedCornerShape(6.dp),
-        color = Color(0xFFFFFFFF), // Clean white
+        shape = RoundedCornerShape(KeyboardStyle.KEY_CORNER_RADIUS),
+        color = KeyboardStyle.KEY_COLOR, // Clean white
         tonalElevation = 0.dp,
-        shadowElevation = if (isPressed) 0.dp else 1.dp
+        shadowElevation = KeyboardStyle.KEY_SHADOW_ELEVATION
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -343,9 +343,9 @@ private fun SymbolKeyButton(
         ) {
             Text(
                 text = label,
-                fontSize = 20.sp,
+                fontSize = KeyboardStyle.KEY_FONT_SIZE,
                 textAlign = TextAlign.Center,
-                color = Color(0xFF212529), // Dark gray text
+                color = KeyboardStyle.TEXT_COLOR, // Dark gray text
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -373,7 +373,7 @@ private fun ModeKeyButton(
         onClick = { onKey(key) },
         modifier = modifier
             .fillMaxHeight()
-            .padding(2.dp)
+            .padding(KeyboardStyle.KEY_PADDING)
             .scale(scale)
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -384,10 +384,10 @@ private fun ModeKeyButton(
                     }
                 )
             },
-        shape = RoundedCornerShape(6.dp),
-        color = Color(0xFFADB5BD), // Subtle gray for mode switches
+        shape = RoundedCornerShape(KeyboardStyle.KEY_CORNER_RADIUS),
+        color = KeyboardStyle.SPECIAL_KEY_COLOR, // Subtle gray for mode switches
         tonalElevation = 0.dp,
-        shadowElevation = if (isPressed) 0.dp else 1.dp
+        shadowElevation = KeyboardStyle.KEY_SHADOW_ELEVATION
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -395,9 +395,9 @@ private fun ModeKeyButton(
         ) {
             Text(
                 text = label,
-                fontSize = 16.sp,
+                fontSize = KeyboardStyle.MODE_KEY_FONT_SIZE,
                 textAlign = TextAlign.Center,
-                color = Color(0xFF212529), // Dark gray text
+                color = KeyboardStyle.TEXT_COLOR, // Dark gray text
                 style = MaterialTheme.typography.labelLarge
             )
         }
@@ -442,7 +442,7 @@ private fun LongPressKeyButton(
                         .align(Alignment.Center)
                         .size(width = 60.dp, height = 70.dp) // Taller to connect better
                         .background(
-                            color = Color(0xFF4A90E2),
+                            color = KeyboardStyle.POPUP_COLOR,
                             shape = RoundedCornerShape(8.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -472,7 +472,7 @@ private fun LongPressKeyButton(
         Surface(
             modifier = Modifier
                 .fillMaxHeight()
-                .padding(2.dp)
+                .padding(KeyboardStyle.KEY_PADDING)
                 .scale(scale)
                 .pointerInput(Unit) {
                     detectTapGestures(
@@ -512,10 +512,10 @@ private fun LongPressKeyButton(
                         }
                     )
                 },
-            shape = RoundedCornerShape(6.dp),
-            color = Color(0xFFFFFFFF), // White key
+            shape = RoundedCornerShape(KeyboardStyle.KEY_CORNER_RADIUS),
+            color = KeyboardStyle.KEY_COLOR, // White key
             tonalElevation = 0.dp,
-            shadowElevation = if (isPressed) 0.dp else 1.dp
+            shadowElevation = KeyboardStyle.KEY_SHADOW_ELEVATION
         ) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -524,9 +524,9 @@ private fun LongPressKeyButton(
                 // Main label
                 Text(
                     text = label,
-                    fontSize = 20.sp,
+                    fontSize = KeyboardStyle.KEY_FONT_SIZE,
                     textAlign = TextAlign.Center,
-                    color = Color(0xFF212529),
+                    color = KeyboardStyle.TEXT_COLOR,
                     style = MaterialTheme.typography.bodyLarge
                 )
             }

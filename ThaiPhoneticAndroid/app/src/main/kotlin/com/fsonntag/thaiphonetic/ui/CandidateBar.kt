@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,7 +34,7 @@ fun CandidateBar(
             modifier = modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .background(MaterialTheme.colorScheme.surfaceContainer) // Material Design 3 surface container
+                .background(Color(0xFFD3D8DE)) // Match keyboard background
                 .horizontalScroll(rememberScrollState())
                 .padding(horizontal = 8.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,

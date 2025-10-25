@@ -67,7 +67,7 @@ fun KeyboardScreen(
             modifier = modifier
                 .fillMaxWidth()
                 .height(280.dp)
-                .background(Color(0xFFD3D8DE)), // Sleek light gray background
+                .background(KeyboardStyle.BACKGROUND_COLOR),
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             // Row 1: QWERTY
@@ -172,12 +172,9 @@ fun KeyboardScreen(
                         isSpecial = false
                     )
                 }
-                KeyButton(
-                    key = "SPACE",
-                    label = "space",
+                SpaceKeyButton(
                     onKey = onKey,
-                    modifier = Modifier.weight(3f),
-                    isSpecial = true
+                    modifier = Modifier.weight(3f)
                 )
                 // Period with long-press for ฯ
                 if (onKeyLongPress != null) {
@@ -268,7 +265,7 @@ private fun KeyButton(
         onClick = { onKey(key) },
         modifier = modifier
             .fillMaxHeight()
-            .padding(2.dp)
+            .padding(KeyboardStyle.KEY_PADDING)
             .scale(scale)
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -279,14 +276,14 @@ private fun KeyButton(
                     }
                 )
             },
-        shape = RoundedCornerShape(6.dp), // Sleeker, slightly smaller radius
+        shape = RoundedCornerShape(KeyboardStyle.KEY_CORNER_RADIUS),
         color = when {
-            isActive -> Color(0xFF4A90E2) // Sleek blue for active
-            isSpecial -> Color(0xFFADB5BD) // Subtle gray for special keys
-            else -> Color(0xFFFFFFFF) // Clean white for regular keys
+            isActive -> KeyboardStyle.ACTIVE_COLOR
+            isSpecial -> KeyboardStyle.SPECIAL_KEY_COLOR
+            else -> KeyboardStyle.KEY_COLOR
         },
-        tonalElevation = 0.dp, // Flat design
-        shadowElevation = if (isPressed) 0.dp else 1.dp // Subtle shadow only when not pressed
+        tonalElevation = 0.dp,
+        shadowElevation = KeyboardStyle.KEY_SHADOW_ELEVATION
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -294,12 +291,11 @@ private fun KeyButton(
         ) {
             Text(
                 text = label,
-                fontSize = 20.sp, // Slightly larger for better readability
+                fontSize = KeyboardStyle.KEY_FONT_SIZE,
                 textAlign = TextAlign.Center,
                 color = when {
                     isActive -> Color.White
-                    isSpecial -> Color(0xFF212529) // Dark gray text
-                    else -> Color(0xFF212529) // Dark gray text
+                    else -> KeyboardStyle.TEXT_COLOR
                 },
                 style = MaterialTheme.typography.bodyLarge
             )
@@ -348,7 +344,7 @@ private fun LongPressLetterKeyButton(
                         .align(Alignment.Center)
                         .size(width = 60.dp, height = 70.dp) // Taller to connect better
                         .background(
-                            color = Color(0xFF4A90E2),
+                            color = KeyboardStyle.POPUP_COLOR,
                             shape = RoundedCornerShape(8.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -378,7 +374,7 @@ private fun LongPressLetterKeyButton(
         Surface(
             modifier = Modifier
                 .fillMaxHeight()
-                .padding(2.dp)
+                .padding(KeyboardStyle.KEY_PADDING)
                 .scale(scale)
                 .pointerInput(Unit) {
                     detectTapGestures(
@@ -406,10 +402,10 @@ private fun LongPressLetterKeyButton(
                         }
                     )
                 },
-            shape = RoundedCornerShape(6.dp),
-            color = Color(0xFFFFFFFF), // White key
+            shape = RoundedCornerShape(KeyboardStyle.KEY_CORNER_RADIUS),
+            color = KeyboardStyle.KEY_COLOR,
             tonalElevation = 0.dp,
-            shadowElevation = if (isPressed) 0.dp else 1.dp
+            shadowElevation = KeyboardStyle.KEY_SHADOW_ELEVATION
         ) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -418,17 +414,17 @@ private fun LongPressLetterKeyButton(
                 // Main label (centered)
                 Text(
                     text = label,
-                    fontSize = 20.sp,
+                    fontSize = KeyboardStyle.KEY_FONT_SIZE,
                     textAlign = TextAlign.Center,
-                    color = Color(0xFF212529),
+                    color = KeyboardStyle.TEXT_COLOR,
                     style = MaterialTheme.typography.bodyLarge
                 )
 
                 // Alternate character hint (top-right corner)
                 Text(
                     text = alternateChar,
-                    fontSize = 11.sp,
-                    color = Color(0xFF6C757D), // Medium gray
+                    fontSize = KeyboardStyle.HINT_FONT_SIZE,
+                    color = KeyboardStyle.HINT_COLOR,
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -464,7 +460,7 @@ private fun ShiftKeyButton(
     Surface(
         modifier = modifier
             .fillMaxHeight()
-            .padding(2.dp)
+            .padding(KeyboardStyle.KEY_PADDING)
             .scale(scale)
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -477,10 +473,10 @@ private fun ShiftKeyButton(
                     }
                 )
             },
-        shape = RoundedCornerShape(6.dp),
-        color = Color(0xFFADB5BD), // Subtle gray - same as other special keys
+        shape = RoundedCornerShape(KeyboardStyle.KEY_CORNER_RADIUS),
+        color = KeyboardStyle.SPECIAL_KEY_COLOR,
         tonalElevation = 0.dp,
-        shadowElevation = if (isPressed) 0.dp else 1.dp
+        shadowElevation = KeyboardStyle.KEY_SHADOW_ELEVATION
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -488,7 +484,7 @@ private fun ShiftKeyButton(
         ) {
             // Custom wide arrow drawn with Canvas
             // OFF state: outlined arrow, Active states: filled arrow
-            val arrowColor = Color(0xFF212529) // Dark gray for all states
+            val arrowColor = KeyboardStyle.TEXT_COLOR
             val isActive = shiftState != ThaiPhoneticIME.ShiftState.OFF
 
             androidx.compose.foundation.Canvas(
@@ -528,6 +524,72 @@ private fun ShiftKeyButton(
 
                 drawContext.canvas.nativeCanvas.drawPath(path, paint)
             }
+        }
+    }
+}
+
+/**
+ * Space key button with fading "Thai Phonetic" text
+ * Shows "Thai Phonetic" initially, then fades out to leave an empty space key
+ */
+@Composable
+private fun SpaceKeyButton(
+    onKey: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var isPressed by remember { mutableStateOf(false) }
+    var shouldFade by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = tween(durationMillis = 100),
+        label = "spacePressScale"
+    )
+
+    // Fade out animation - faster fade (1 second instead of 2)
+    val alpha by animateFloatAsState(
+        targetValue = if (shouldFade) 0f else 1f,
+        animationSpec = tween(durationMillis = 1000),
+        label = "spaceFadeOut"
+    )
+
+    // Trigger fade after longer delay (1 second)
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(1000)
+        shouldFade = true
+    }
+
+    Surface(
+        onClick = { onKey("SPACE") },
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(KeyboardStyle.KEY_PADDING)
+            .scale(scale)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        isPressed = true
+                        tryAwaitRelease()
+                        isPressed = false
+                    }
+                )
+            },
+        shape = RoundedCornerShape(KeyboardStyle.KEY_CORNER_RADIUS),
+        color = KeyboardStyle.SPECIAL_KEY_COLOR,
+        tonalElevation = 0.dp,
+        shadowElevation = KeyboardStyle.KEY_SHADOW_ELEVATION
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Text(
+                text = "Thai Phonetic",
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                color = KeyboardStyle.HINT_COLOR.copy(alpha = alpha),
+                style = MaterialTheme.typography.labelMedium
+            )
         }
     }
 }
